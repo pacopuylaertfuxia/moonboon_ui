@@ -4,6 +4,7 @@ import '../setup_flow/found_monitor.dart';
 import '../setup_flow/bloc/monitor_state.dart';
 import '../setup_flow/bloc/final_configuration_step.dart';
 import '../setup_flow/bloc/setup_error_type.dart';
+import '../setup_flow/component/noise_detection_body.dart';
 
 /// Auto-plays through the monitor setup flow using timers.
 /// No real BLE, WiFi, or AWS — pure UI state machine.
@@ -128,7 +129,7 @@ class MockMonitorCubit extends Cubit<MonitorState> {
 
   void refuseStreamingConsent() => emit(MonitorNoiseDetectionStep());
 
-  void setNoiseDetectionLevel(dynamic level, bool onlyBabyCries) {
+  void setNoiseDetectionLevel(NoiseDetectionLevel level, bool onlyBabyCries) {
     emit(MonitorProvisioningSuccess(42));
   }
 
