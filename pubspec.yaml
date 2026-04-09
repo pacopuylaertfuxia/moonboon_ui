@@ -54,6 +54,7 @@ flutter:
 
   assets:
     - assets/illustrations/monitor/
+    - assets/icons/utility/
     - assets/illustrations/
     - assets/illustrations/connect/light/
     - assets/illustrations/connect/dark/
