@@ -21,6 +21,7 @@ import 'component/charging_animation.dart';
 import 'component/found_wifi_network.dart';
 import 'found_monitor.dart';
 import 'setup_text_field.dart';
+import 'component/noise_detection_body.dart';
 
 class MonitorProvisioningPage extends StatefulWidget {
   final VoidCallback? onMonitorAdded;
@@ -42,7 +43,7 @@ class MonitorProvisioningPage extends StatefulWidget {
 class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
   final _nameInputController = SetupTextController();
   final _passwordInputController = SetupTextController();
-  var _noiseDetectionIndex = 1; // 0=low, 1=medium, 2=high
+  var _noiseDetectionLevel = NoiseDetectionLevel.medium;
   var _onlyBabyCries = false;
 
   int? _stepFor(MonitorState state) => switch (state) {
@@ -480,7 +481,6 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
   }
 
   Widget _buildNoiseDetectionStep(BuildContext context) {
-    final levels = ['Low', 'Medium', 'High'];
     return Container(
       color: context.color.surfaceSecondary,
       child: PairDeviceBody(
@@ -491,98 +491,17 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
         primaryButtonLabel: context.text.monitor_pair_continue,
         onPrimaryButtonPressed: () {
           context.read<MockMonitorCubit>().setNoiseDetectionLevel(
-            _noiseDetectionIndex,
+            _noiseDetectionLevel,
             _onlyBabyCries,
           );
         },
         child: Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Sensitivity selector
-              Row(
-                children: List.generate(3, (i) {
-                  final isSelected = i == _noiseDetectionIndex;
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _noiseDetectionIndex = i),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        margin: EdgeInsets.only(
-                          right: i < 2 ? 8.0 : 0,
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? context.color.surfaceTertiary
-                              : context.color.surfacePrimary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          levels[i],
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.labelMedium,
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-              const SizedBox(height: 16),
-              // Baby cries only toggle
-              GestureDetector(
-                onTap: () =>
-                    setState(() => _onlyBabyCries = !_onlyBabyCries),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: context.color.surfacePrimary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Only baby cries',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 44,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: _onlyBabyCries
-                              ? context.color.brandPrimary
-                              : context.color.textInactive,
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: Align(
-                          alignment: _onlyBabyCries
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: Padding(
-                            padding: const EdgeInsets.all(2),
-                            child: Container(
-                              width: 20,
-                              height: 20,
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+          child: NoiseDetectionBody(
+            level: _noiseDetectionLevel,
+            onlyBabyCries: _onlyBabyCries,
+            onLevelSelected: (l) => setState(() => _noiseDetectionLevel = l),
+            onOnlyBabyCriesChanged: (v) => setState(() => _onlyBabyCries = v),
           ),
         ),
       ),
