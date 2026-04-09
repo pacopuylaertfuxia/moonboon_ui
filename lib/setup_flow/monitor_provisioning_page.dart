@@ -7,7 +7,6 @@ import '../common/button.dart';
 import '../common/circular_loading_bar.dart';
 import '../common/fade_overlay.dart';
 import '../common/pair_device_body.dart';
-import '../common/simple_circle_icon_button.dart';
 import '../mock/mock_monitor_cubit.dart';
 import '../strings/app_strings.dart';
 import '../theme/app_colors.dart';
@@ -137,26 +136,6 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
                 right: 0,
                 child: Center(child: _buildStepper(step, 5)),
               ),
-            if (state is! MonitorStreamingConsentStep &&
-                state is! MonitorNoiseDetectionStep &&
-                state is! MonitorFinalConfiguration)
-              Positioned(
-                top: 8,
-                right: 8,
-                child: SimpleCircleIconButton(
-                  width: 40,
-                  height: 40,
-                  color: Colors.transparent,
-                  icon: SvgPicture.asset(
-                    'assets/icons/help_circle.svg',
-                    width: 24,
-                    height: 24,
-                  ),
-                  onPressed: () {
-                    // no-op in playground
-                  },
-                ),
-              ),
           ],
         );
       },
@@ -179,8 +158,6 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
             title: context.text.baby_monitors_name,
             description:
                 context.text.monitor_pair_select_monitor_to_connect_to,
-            onBackButtonPressed: () =>
-                context.read<MockMonitorCubit>().goToPreviousStep(),
             isLoading: state.isStillScanning,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -219,8 +196,6 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
       key: const ValueKey('foundStepSingle'),
       title: context.text.monitor_setup_found,
       asset: 'assets/illustrations/monitor/illustration_monitor_front.png',
-      onBackButtonPressed: () =>
-          context.read<MockMonitorCubit>().goToPreviousStep(),
       isLoading: isConnecting,
       child: SetupTextField(
         controller: _nameInputController,
@@ -238,25 +213,37 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
   Widget _buildChargeMonitorStep(BuildContext context) {
     return PairDeviceBody(
       key: const ValueKey('chargeMonitorStep'),
-      onBackButtonPressed: widget.onNavigatedBack,
       title: context.text.monitor_setup_charge_device,
       asset: 'assets/illustrations/monitor/illustration_monitor_front.png',
       assetBottomPadding: 0,
       description: context.text.monitor_setup_charge_device_description,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           const ChargingAnimation(),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(context.text.monitor_setup_looking_for_your_monitor),
+              Text(
+                context.text.monitor_setup_looking_for_your_monitor,
+                style: TextStyle(
+                  color: secondaryColor.withValues(alpha: 0.8),
+                  fontSize: 15,
+                ),
+              ),
               const SizedBox(width: 16),
-              CircularLoadingBar(
-                color: secondaryColor.withValues(alpha: 0.5),
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: secondaryColor.withValues(alpha: 0.5),
+                ),
               ),
             ],
           ),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -358,8 +345,6 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
               .text
               .monitor_pair_unable_to_connect_to_wifi_error_description
           : null,
-      onBackButtonPressed: () =>
-          context.read<MockMonitorCubit>().goToPreviousStep(),
       child: SetupTextField(
         controller: _passwordInputController,
         validationRule: (p) => p.length >= 8 && p.length <= 63,
@@ -386,7 +371,26 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
       onPrimaryButtonPressed: () => widget.onMonitorAdded?.call(),
       child: Padding(
         padding: const EdgeInsets.only(bottom: 24),
-        child: Image.asset('assets/images/monitor_setup_success.png'),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(32)),
+              child: Image.asset(
+                'assets/images/monitor_setup_success.png',
+                width: double.infinity,
+                fit: BoxFit.fitWidth,
+              ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              'Sweet dreams are incoming',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: context.color.textTertiary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -400,8 +404,6 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
       key: const ValueKey('scanningWiFiResultStep'),
       title: state.monitorName,
       asset: 'assets/illustrations/monitor/illustration_monitor_front.png',
-      onBackButtonPressed: () =>
-          context.read<MockMonitorCubit>().goToPreviousStep(),
       child: state.ssids.isNotEmpty
           ? Column(
               mainAxisSize: MainAxisSize.min,
@@ -457,10 +459,35 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
     return PairDeviceBody(
       key: const ValueKey('scanningWiFiStep'),
       title: monitorName,
-      onBackButtonPressed: () => context.read<MockMonitorCubit>().goToPreviousStep(),
-      child: const Padding(
-        padding: EdgeInsets.only(top: 24.0),
-        child: WifiRadarAnimation(size: 240),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 8),
+          const WifiRadarAnimation(size: 270),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Looking for WiFi networks…',
+                style: TextStyle(
+                  color: secondaryColor.withValues(alpha: 0.8),
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: secondaryColor.withValues(alpha: 0.5),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+        ],
       ),
     );
   }
@@ -472,9 +499,8 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
     return PairDeviceBody(
       key: const ValueKey('finalConfigurationStep'),
       title: monitorName,
-      onCloseButtonPressed: () => Navigator.of(context).pop(),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.only(top: 16, bottom: 24),
         child: SetupProgressIndicator(step: step),
       ),
     );
@@ -543,30 +569,8 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
       secondaryButtonLabel: context.text.disable,
       onSecondaryButtonPressed: () =>
           context.read<MockMonitorCubit>().refuseStreamingConsent(),
-      onCloseButtonPressed: () => Navigator.of(context).pop(),
       child: const SizedBox(height: 36),
     );
-  }
-
-  String _finalConfigurationStepLabel(FinalConfigurationStep step) {
-    return switch (step) {
-      FinalConfigurationStep.connectingToWiFi =>
-        context.text.monitor_setup_connecting_to_wifi,
-      FinalConfigurationStep.provisioning =>
-        context.text.monitor_setup_provisioning,
-      FinalConfigurationStep.uploadingAwsCredential =>
-        context.text.monitor_setup_uploading_credentials,
-      FinalConfigurationStep.checkingFirmwareVersion =>
-        context.text.monitor_setup_checking_firmware,
-      FinalConfigurationStep.upgradingFirmware =>
-        context.text.monitor_setup_upgrading_firmware,
-      FinalConfigurationStep.firstFirmwareUpgradeProcessCheck =>
-        context.text.monitor_setup_upgrading_firmware_first_milestone,
-      FinalConfigurationStep.secondFirmwareUpgradeProcessCheck =>
-        context.text.monitor_setup_upgrading_firmware_second_milestone,
-      FinalConfigurationStep.finalizing =>
-        context.text.monitor_setup_finalizing,
-    };
   }
 
   @override
