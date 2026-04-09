@@ -13,6 +13,7 @@ import 'setup_flow/component/charging_animation.dart';
 import 'setup_flow/component/noise_detection_body.dart';
 import 'setup_flow/component/setup_progress_indicator.dart';
 import 'setup_flow/component/wifi_radar_animation.dart';
+import 'setup_flow/monitor_provisioning_page.dart';
 import 'common/button.dart';
 import 'common/pair_device_body.dart';
 import 'theme/app_theme.dart';
@@ -124,6 +125,13 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
                   _SectionLabel('Setup flow'),
                   const SizedBox(height: 16),
                   _DemoTile(
+                    number: '▶',
+                    title: 'Complete setup flow',
+                    subtitle: 'All steps in sequence — charge · name · WiFi · config · consent · noise',
+                    onTap: () => _openMonitorSetupFlow(context),
+                  ),
+                  const SizedBox(height: 10),
+                  _DemoTile(
                     number: '1',
                     title: 'Charge monitor step',
                     subtitle: 'First step — USB-C cable animation + scanning text',
@@ -213,6 +221,38 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
             ),
           ),
         ]),
+      ),
+    );
+  }
+
+  void _openMonitorSetupFlow(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => BlocProvider(
+        create: (_) => MockMonitorCubit()..checkCurrentUser(),
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.92,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (c, _) => Container(
+            decoration: BoxDecoration(
+              color: context.color.surfacePrimary,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(children: [
+              Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 4),
+                width: 36, height: 4,
+                decoration: BoxDecoration(color: context.color.borderNormal, borderRadius: BorderRadius.circular(100)),
+              ),
+              Expanded(child: MonitorProvisioningPage(
+                onMonitorAdded: () => Navigator.of(ctx).pop(),
+              )),
+            ]),
+          ),
+        ),
       ),
     );
   }

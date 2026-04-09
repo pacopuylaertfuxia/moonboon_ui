@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../common/toggle_switch.dart';
-import '../theme/theme_colors.dart';
+import '../../common/toggle_switch.dart';
+import '../../theme/theme_colors.dart';
 
 enum NoiseDetectionLevel { low, medium, high }
 
@@ -28,24 +28,24 @@ class NoiseDetectionBody extends StatelessWidget {
       children: [
         _NoiseOption(
           level: NoiseDetectionLevel.low,
-          title: '\''Quiet\'\'',
-          description: '\''Reacts only to loud, sustained sounds.\'\'',
+          title: 'Quiet',
+          description: 'Reacts only to loud, sustained sounds.',
           isSelected: level == NoiseDetectionLevel.low,
           onlyBabyCries: onlyBabyCries,
           onTap: () => onLevelSelected(NoiseDetectionLevel.low),
         ),
         _NoiseOption(
           level: NoiseDetectionLevel.medium,
-          title: '\''Standard\'\'',
-          description: '\''Balanced sensitivity — recommended for most families.\'\'',
+          title: 'Standard',
+          description: 'Balanced sensitivity — recommended for most families.',
           isSelected: level == NoiseDetectionLevel.medium,
           onlyBabyCries: onlyBabyCries,
           onTap: () => onLevelSelected(NoiseDetectionLevel.medium),
         ),
         _NoiseOption(
           level: NoiseDetectionLevel.high,
-          title: '\''Maximum\'\'',
-          description: '\''Picks up even the quietest sounds and movements.\'\'',
+          title: 'Maximum',
+          description: 'Picks up even the quietest sounds and movements.',
           isSelected: level == NoiseDetectionLevel.high,
           onlyBabyCries: onlyBabyCries,
           onTap: () => onLevelSelected(NoiseDetectionLevel.high),
@@ -61,14 +61,14 @@ class NoiseDetectionBody extends StatelessWidget {
             child: Row(
               children: [
                 Text(
-                  '\''Only baby cries\'\'',
+                  'Only baby cries',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: context.color.textSecondary,
                   ),
                 ),
                 const SizedBox(width: 8),
                 SvgPicture.asset(
-                  '\''assets/illustrations/monitor/illustration_ai_label.svg\'\'',
+                  'assets/illustrations/monitor/illustration_ai_label.svg',
                   width: 24,
                   height: 24,
                   colorFilter: ColorFilter.mode(
@@ -145,7 +145,7 @@ class _NoiseOption extends StatelessWidget {
                         ),
                         if (onlyBabyCries)
                           Text(
-                            '\''Only baby cries\'\'',
+                            'Only baby cries',
                             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: color.textQuaternary,
                             ),
@@ -189,13 +189,11 @@ class _NoiseIcon extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Bell icon placeholder using text
             Icon(
               Icons.notifications_outlined,
               color: color.textPrimary,
               size: size * 0.5,
             ),
-            // Ring indicators
             ...switch (level) {
               NoiseDetectionLevel.high => [
                 _Ring(size: size * 0.65, opacity: 0.35),

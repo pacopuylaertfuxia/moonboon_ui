@@ -43,28 +43,35 @@ TextTheme _buildTextTheme(Brightness brightness) {
     ),
     headlineSmall: TextStyle(
       fontFamily: 'Georgia',
-      fontSize: 22,
+      fontSize: 32,
       fontWeight: FontWeight.w400,
       color: secondaryText,
-      height: 1.3,
+      height: 1.0,
     ),
     titleLarge: TextStyle(
-      fontSize: 18,
+      fontSize: 20,
       fontWeight: FontWeight.w600,
       color: textColor,
-      height: 1.3,
+      height: 1.4,
     ),
     titleMedium: TextStyle(
-      fontSize: 16,
+      fontSize: 18,
       fontWeight: FontWeight.w500,
       color: textColor,
     ),
     bodyLarge: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w400,
+      color: textColor,
+      height: 1.55,
+    ),
+    bodyMedium: TextStyle(
       fontSize: 16,
       fontWeight: FontWeight.w400,
       color: textColor,
+      height: 1.5,
     ),
-    bodyMedium: TextStyle(
+    bodySmall: TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.w400,
       color: textColor,
