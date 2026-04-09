@@ -1,0 +1,1 @@
+enum MotorType { basic, premium }
