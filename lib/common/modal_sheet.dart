@@ -113,8 +113,18 @@ class ModalSheet extends StatelessWidget {
           )
         : EdgeInsets.zero;
 
+    // Bottom corners track the device screen corner radius (production uses DeviceRadius service).
+    // For iOS, modern iPhones have a screen corner radius ≈ 44px. The sheet sits inside
+    // 6px outer padding, so bottom radius = screenRadius - 4 ≈ 40px. Top always 32px.
+    const double bottomRadius = 40.0;
+
     return ClipRRect(
-      borderRadius: const BorderRadius.all(Radius.circular(32)),
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(32),
+        topRight: Radius.circular(32),
+        bottomLeft: Radius.circular(bottomRadius),
+        bottomRight: Radius.circular(bottomRadius),
+      ),
       child: _AnimatedSizeOrNot(
         duration: duration,
         child: Container(

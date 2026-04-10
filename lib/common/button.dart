@@ -1,5 +1,21 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 import '../theme/theme_colors.dart';
+
+/// Luminance-based overlay color — matches production color_utils.dart
+Color getOverlayColor(Color? backgroundColor, BuildContext context) {
+  final bgColor = backgroundColor ?? context.color.surfaceTertiary;
+  if ((bgColor.a * 255.0).round() & 0xff == 0) {
+    final brightness = Theme.of(context).brightness;
+    return brightness == Brightness.dark
+        ? Colors.white.withValues(alpha: 0.12)
+        : Colors.black.withValues(alpha: 0.12);
+  }
+  final luminance = bgColor.computeLuminance();
+  return luminance < 0.5
+      ? Colors.white.withValues(alpha: 0.12)
+      : Colors.black.withValues(alpha: 0.12);
+}
 
 enum ButtonVariant { primary, secondary, destructive, ghost, outlined }
 
@@ -78,19 +94,19 @@ ButtonStyle getButtonStyle(
         minimumSize: minSize,
         shape: RoundedRectangleBorder(borderRadius: borderRadius),
         textStyle: textStyle,
-        overlayColor: Colors.black.withValues(alpha: 0.08),
+        overlayColor: getOverlayColor(backgroundColor, context),
       );
     case ButtonVariant.secondary:
       return OutlinedButton.styleFrom(
         backgroundColor:
             backgroundColor ??
-            context.color.surfaceTertiary.withValues(alpha: disabled ? 0.5 : 1.0),
+            mutedApricot.withValues(alpha: disabled ? 0.5 : 1.0),
         foregroundColor: Theme.of(context).colorScheme.primary,
         minimumSize: minSize,
         shape: RoundedRectangleBorder(borderRadius: borderRadius),
         side: BorderSide.none,
         textStyle: textStyle,
-        overlayColor: Colors.black.withValues(alpha: 0.08),
+        overlayColor: getOverlayColor(backgroundColor, context),
       );
     case ButtonVariant.destructive:
       return ElevatedButton.styleFrom(

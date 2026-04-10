@@ -214,7 +214,12 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(6),
         child: ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(32)),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(32),
+            topRight: Radius.circular(32),
+            bottomLeft: Radius.circular(40),
+            bottomRight: Radius.circular(40),
+          ),
           child: BlocProvider(
             create: (_) => MockMonitorCubit()..checkCurrentUser(),
             child: Container(
@@ -241,7 +246,12 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(6),
         child: ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(32)),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(32),
+            topRight: Radius.circular(32),
+            bottomLeft: Radius.circular(40),
+            bottomRight: Radius.circular(40),
+          ),
           child: BlocProvider(
             create: (_) => MockMotorCubit(),
             child: Container(
@@ -443,7 +453,12 @@ class _ConfigCompleteSheet extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 24),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ClipRRect(
-            borderRadius: const BorderRadius.all(Radius.circular(32)),
+            borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(32),
+            topRight: Radius.circular(32),
+            bottomLeft: Radius.circular(40),
+            bottomRight: Radius.circular(40),
+          ),
             child: Image.asset('assets/images/monitor_setup_success.png', width: double.infinity, fit: BoxFit.fitWidth),
           ),
           const SizedBox(height: 32),

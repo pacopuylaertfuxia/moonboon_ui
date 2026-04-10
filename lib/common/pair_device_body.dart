@@ -8,7 +8,12 @@ import '../theme/theme_colors.dart';
 const double pairDeviceBodyTopPadding = 48;
 const double pairDeviceBodyBottomPadding = 32;
 const double horizontalPadding = 16.0;
-const double bottomSafeArea = 32.0;
+
+/// Matches production device.dart: padding.bottom + 8, fallback 16
+double bottomSafeArea(BuildContext context) {
+  final bottom = MediaQuery.of(context).padding.bottom;
+  return bottom > 0 ? bottom + 8 : 16.0;
+}
 
 TextStyle? getTitleStyle(BuildContext context) {
   return Theme.of(
@@ -74,7 +79,7 @@ class PairDeviceBody extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.only(
-        bottom: withBottomPadding ? bottomSafeArea : 0,
+        bottom: withBottomPadding ? bottomSafeArea(context) : 0,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -256,7 +261,7 @@ class PairDeviceErrorBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        bottom: withBottomPadding ? bottomSafeArea : 0,
+        bottom: withBottomPadding ? bottomSafeArea(context) : 0,
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
