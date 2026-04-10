@@ -1,10 +1,7 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 
 import '../common/button.dart';
-import '../common/circular_loading_bar.dart';
 import '../common/fade_overlay.dart';
 import '../common/pair_device_body.dart';
 import '../mock/mock_monitor_cubit.dart';
@@ -54,7 +51,7 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
     MonitorWiFiPasswordInputError() => 3,
     MonitorFinalConfiguration() => 4,
     MonitorStreamingConsentStep() => 5,
-    MonitorNoiseDetectionStep() => 5,
+    MonitorNoiseDetectionStep() => null,
     _ => null,
   };
 
@@ -507,69 +504,40 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
   }
 
   Widget _buildNoiseDetectionStep(BuildContext context) {
-    return Container(
+    return ColoredBox(
       color: context.color.surfaceSecondary,
-      child: PairDeviceBody(
+      child: NoiseDetectionBody(
         key: const ValueKey('noiseDetectionStep'),
-        title: context.text.monitor_setup_noise_detection_title,
-        description: context.text.monitor_setup_noise_detection_description,
-        titleBottomPadding: 12,
-        primaryButtonLabel: context.text.monitor_pair_continue,
-        onPrimaryButtonPressed: () {
-          context.read<MockMonitorCubit>().setNoiseDetectionLevel(
-            _noiseDetectionLevel,
-            _onlyBabyCries,
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child: NoiseDetectionBody(
-            level: _noiseDetectionLevel,
-            onlyBabyCries: _onlyBabyCries,
-            onLevelSelected: (l) => setState(() => _noiseDetectionLevel = l),
-            onOnlyBabyCriesChanged: (v) => setState(() => _onlyBabyCries = v),
-          ),
+        level: _noiseDetectionLevel,
+        onlyBabyCries: _onlyBabyCries,
+        onLevelSelected: (l) => setState(() => _noiseDetectionLevel = l),
+        onOnlyBabyCriesChanged: (v) => setState(() => _onlyBabyCries = v),
+        onContinue: () => context.read<MockMonitorCubit>().setNoiseDetectionLevel(
+          _noiseDetectionLevel,
+          _onlyBabyCries,
         ),
       ),
     );
   }
 
   Widget _buildStreamingConsentStep(BuildContext context) {
-    final bodyStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-      color: context.color.textSecondary,
-    );
-    final descriptionWidget = RichText(
-      textAlign: TextAlign.center,
-      text: TextSpan(
-        style: bodyStyle,
-        children: [
-          TextSpan(
-            text: context.text.monitor_pair_allow_sound_monitoring_description,
-          ),
-          TextSpan(
-            text: context.text.privacy_policy_link,
-            style: bodyStyle?.copyWith(
-              decoration: TextDecoration.underline,
-              decorationColor: context.color.textSecondary,
-            ),
-            recognizer: TapGestureRecognizer()..onTap = () {},
-          ),
-          const TextSpan(text: '.'),
-        ],
-      ),
-    );
-
     return PairDeviceBody(
       key: const ValueKey('streamingConsentStep'),
-      title: context.text.monitor_pair_allow_sound_monitoring_title,
-      descriptionWidget: descriptionWidget,
-      primaryButtonLabel: context.text.give_consent,
+      title: 'Your device is ready\nto stream!',
+      primaryButtonLabel: 'Start streaming',
       onPrimaryButtonPressed: () =>
           context.read<MockMonitorCubit>().giveStreamingConsent(),
-      secondaryButtonLabel: context.text.disable,
-      onSecondaryButtonPressed: () =>
-          context.read<MockMonitorCubit>().refuseStreamingConsent(),
-      child: const SizedBox(height: 36),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(24)),
+          child: Image.asset(
+            'assets/images/babymonitor_packshot.png',
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
     );
   }
 

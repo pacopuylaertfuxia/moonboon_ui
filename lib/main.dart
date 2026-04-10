@@ -228,13 +228,20 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
           ),
           child: BlocProvider(
             create: (_) => MockMonitorCubit()..checkCurrentUser(),
-            child: Container(
-              color: context.color.surfacePrimary,
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(ctx).size.height - 60,
-              ),
-              child: MonitorProvisioningPage(
-                onMonitorAdded: () => Navigator.of(ctx).pop(),
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(ctx).size.height - 60,
+                ),
+                child: ColoredBox(
+                  color: context.color.surfacePrimary,
+                  child: MonitorProvisioningPage(
+                    onMonitorAdded: () => Navigator.of(ctx).pop(),
+                  ),
+                ),
               ),
             ),
           ),
@@ -261,12 +268,19 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
           ),
           child: BlocProvider(
             create: (_) => MockMotorCubit(),
-            child: Container(
-              color: context.color.surfacePrimary,
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(ctx).size.height - 60,
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(ctx).size.height - 60,
+                ),
+                child: ColoredBox(
+                  color: context.color.surfacePrimary,
+                  child: PairDeviceModal(motorType: motorType),
+                ),
               ),
-              child: PairDeviceModal(motorType: motorType),
             ),
           ),
         ),
@@ -481,20 +495,14 @@ class _NoiseDetectionSheetState extends State<_NoiseDetectionSheet> {
   bool _onlyBabyCries = false;
   @override
   Widget build(BuildContext context) {
-    return PairDeviceBody(
-      title: 'Sound detection',
-      description: 'Choose how sensitive the monitor should be to sounds.',
-      titleBottomPadding: 12,
-      primaryButtonLabel: 'Continue',
-      onPrimaryButtonPressed: () => Navigator.of(context).pop(),
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: NoiseDetectionBody(
-          level: _level,
-          onlyBabyCries: _onlyBabyCries,
-          onLevelSelected: (l) => setState(() => _level = l),
-          onOnlyBabyCriesChanged: (v) => setState(() => _onlyBabyCries = v),
-        ),
+    return ColoredBox(
+      color: context.color.surfaceSecondary,
+      child: NoiseDetectionBody(
+        level: _level,
+        onlyBabyCries: _onlyBabyCries,
+        onLevelSelected: (l) => setState(() => _level = l),
+        onOnlyBabyCriesChanged: (v) => setState(() => _onlyBabyCries = v),
+        onContinue: () => Navigator.of(context).pop(),
       ),
     );
   }

@@ -49,7 +49,7 @@ TextStyle? _getTextStyle(
 ) {
   switch (size) {
     case ButtonSize.lg:
-      return Theme.of(context).textTheme.titleLarge;
+      return Theme.of(context).textTheme.titleMedium;  // iOS/Title/L = 18px
     case ButtonSize.medium:
       return Theme.of(context).textTheme.labelLarge;
     case ButtonSize.icon:

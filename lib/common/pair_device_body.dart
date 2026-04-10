@@ -200,7 +200,7 @@ class PairDeviceBody extends StatelessWidget {
                             ? const CupertinoActivityIndicator(radius: 16)
                             : Text(
                                 primaryButtonLabel!,
-                                style: Theme.of(context).textTheme.titleLarge,
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
                         variant: ButtonVariant.primary,
                         size: ButtonSize.lg,
@@ -221,7 +221,7 @@ class PairDeviceBody extends StatelessWidget {
                         alignment: Alignment.center,
                         child: Text(
                           secondaryButtonLabel!,
-                          style: Theme.of(context).textTheme.titleLarge
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 decoration: TextDecoration.underline,
                                 height: 1.5,
@@ -291,7 +291,7 @@ class PairDeviceErrorBody extends StatelessWidget {
                   ? const CupertinoActivityIndicator(radius: 16)
                   : Text(
                       primaryButtonLabel,
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
               variant: ButtonVariant.primary,
               size: ButtonSize.lg,
