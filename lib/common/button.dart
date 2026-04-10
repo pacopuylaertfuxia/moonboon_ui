@@ -49,7 +49,7 @@ TextStyle? _getTextStyle(
 ) {
   switch (size) {
     case ButtonSize.lg:
-      return Theme.of(context).textTheme.titleMedium;
+      return Theme.of(context).textTheme.titleLarge;
     case ButtonSize.medium:
       return Theme.of(context).textTheme.labelLarge;
     case ButtonSize.icon:

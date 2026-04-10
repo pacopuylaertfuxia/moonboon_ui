@@ -13,12 +13,17 @@ import 'setup_flow/component/setup_progress_indicator.dart';
 import 'setup_flow/component/wifi_radar_animation.dart';
 import 'setup_flow/monitor_provisioning_page.dart';
 import 'common/button.dart';
+import 'common/device_radius.dart';
 import 'common/modal_sheet.dart';
 import 'common/pair_device_body.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_colors.dart';
 
-void main() => runApp(const MoonboonUIApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await DeviceRadius.instance.init();
+  runApp(const MoonboonUIApp());
+}
 
 class MoonboonUIApp extends StatefulWidget {
   const MoonboonUIApp({super.key});
@@ -206,6 +211,7 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
   }
 
   void _openMonitorSetupFlow(BuildContext context) {
+    final br = DeviceRadius.instance.bottomSheetRadius;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -214,11 +220,11 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(6),
         child: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(32),
-            topRight: Radius.circular(32),
-            bottomLeft: Radius.circular(40),
-            bottomRight: Radius.circular(40),
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(32),
+            topRight: const Radius.circular(32),
+            bottomLeft: Radius.circular(br),
+            bottomRight: Radius.circular(br),
           ),
           child: BlocProvider(
             create: (_) => MockMonitorCubit()..checkCurrentUser(),
@@ -238,6 +244,7 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
   }
 
   void _openMotorFlow(BuildContext context, MotorType motorType) {
+    final br = DeviceRadius.instance.bottomSheetRadius;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -246,11 +253,11 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(6),
         child: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(32),
-            topRight: Radius.circular(32),
-            bottomLeft: Radius.circular(40),
-            bottomRight: Radius.circular(40),
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(32),
+            topRight: const Radius.circular(32),
+            bottomLeft: Radius.circular(br),
+            bottomRight: Radius.circular(br),
           ),
           child: BlocProvider(
             create: (_) => MockMotorCubit(),
@@ -453,12 +460,7 @@ class _ConfigCompleteSheet extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 24),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ClipRRect(
-            borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(32),
-            topRight: Radius.circular(32),
-            bottomLeft: Radius.circular(40),
-            bottomRight: Radius.circular(40),
-          ),
+            borderRadius: const BorderRadius.all(Radius.circular(32)),
             child: Image.asset('assets/images/monitor_setup_success.png', width: double.infinity, fit: BoxFit.fitWidth),
           ),
           const SizedBox(height: 32),
