@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -15,6 +13,7 @@ import 'setup_flow/component/setup_progress_indicator.dart';
 import 'setup_flow/component/wifi_radar_animation.dart';
 import 'setup_flow/monitor_provisioning_page.dart';
 import 'common/button.dart';
+import 'common/modal_sheet.dart';
 import 'common/pair_device_body.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_colors.dart';
@@ -64,34 +63,15 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
   Future<void> _show(
     BuildContext context, {
     required Widget child,
+    ModalSheetBackground background = ModalSheetBackground.white,
+    // backgroundColor is ignored — use the background enum to control sheet color
     Color? backgroundColor,
   }) async {
-    await showModalBottomSheet(
+    await ModalSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.92,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        builder: (ctx, _) => Container(
-          decoration: BoxDecoration(
-            color: backgroundColor ?? context.color.surfacePrimary,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(children: [
-            Container(
-              margin: const EdgeInsets.only(top: 10, bottom: 4),
-              width: 36, height: 4,
-              decoration: BoxDecoration(
-                color: context.color.borderNormal,
-                borderRadius: BorderRadius.circular(100),
-              ),
-            ),
-            Expanded(child: child),
-          ]),
-        ),
-      ),
+      background: background,
+      duration: Duration.zero,
+      child: child,
     );
   }
 
@@ -122,7 +102,7 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // ── Setup flow ──────────────────────────────────────────
-                  _SectionLabel('Setup flow'),
+                  const _SectionLabel('Setup flow'),
                   const SizedBox(height: 16),
                   _DemoTile(
                     number: '▶',
@@ -136,7 +116,7 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
                     title: 'Charge monitor step',
                     subtitle: 'First step — USB-C cable animation + scanning text',
                     onTap: () => _show(context,
-                      child: _WithStepper(step: 1, totalSteps: 5, child: const _ChargingSheet())),
+                      child: const _WithStepper(step: 1, totalSteps: 5, child: _ChargingSheet())),
                   ),
                   const SizedBox(height: 10),
                   _DemoTile(
@@ -144,7 +124,7 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
                     title: 'WiFi radar scanning',
                     subtitle: 'Pulse-ring radar animation while searching for networks',
                     onTap: () => _show(context,
-                      child: _WithStepper(step: 3, totalSteps: 5, child: const _RadarSheet())),
+                      child: const _WithStepper(step: 3, totalSteps: 5, child: _RadarSheet())),
                   ),
                   const SizedBox(height: 10),
                   _DemoTile(
@@ -154,7 +134,7 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
                     onTap: () async {
                       setState(() => _hideListBehindSheet = true);
                       await _show(context,
-                        child: _WithStepper(step: 4, totalSteps: 5, child: const _FinalConfigSheet()));
+                        child: const _WithStepper(step: 4, totalSteps: 5, child: _FinalConfigSheet()));
                       if (mounted) setState(() => _hideListBehindSheet = false);
                     },
                   ),
@@ -171,8 +151,8 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
                     title: 'Noise detection step',
                     subtitle: 'Redesigned level picker with AI badge · fully interactive',
                     onTap: () => _show(context,
-                      backgroundColor: context.color.surfaceSecondary,
-                      child: _WithStepper(step: 5, totalSteps: 5, child: const _NoiseDetectionSheet())),
+                      background: ModalSheetBackground.cream,
+                      child: const _WithStepper(step: 5, totalSteps: 5, child: _NoiseDetectionSheet())),
                   ),
                   const SizedBox(height: 10),
                   _DemoTile(
@@ -201,7 +181,7 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
                   const SizedBox(height: 40),
 
                   // ── Motor ───────────────────────────────────────────────
-                  _SectionLabel('Motor Setup'),
+                  const _SectionLabel('Motor Setup'),
                   const SizedBox(height: 16),
                   _DemoTile(
                     number: '→',
@@ -230,27 +210,22 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => BlocProvider(
-        create: (_) => MockMonitorCubit()..checkCurrentUser(),
-        child: DraggableScrollableSheet(
-          initialChildSize: 0.92,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          builder: (c, _) => Container(
-            decoration: BoxDecoration(
+      barrierColor: Colors.black.withValues(alpha: 0.38),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(6),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(32)),
+          child: BlocProvider(
+            create: (_) => MockMonitorCubit()..checkCurrentUser(),
+            child: Container(
               color: context.color.surfacePrimary,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: Column(children: [
-              Container(
-                margin: const EdgeInsets.only(top: 10, bottom: 4),
-                width: 36, height: 4,
-                decoration: BoxDecoration(color: context.color.borderNormal, borderRadius: BorderRadius.circular(100)),
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(ctx).size.height - 60,
               ),
-              Expanded(child: MonitorProvisioningPage(
+              child: MonitorProvisioningPage(
                 onMonitorAdded: () => Navigator.of(ctx).pop(),
-              )),
-            ]),
+              ),
+            ),
           ),
         ),
       ),
@@ -262,25 +237,20 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => BlocProvider(
-        create: (_) => MockMotorCubit(),
-        child: DraggableScrollableSheet(
-          initialChildSize: 0.92,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          builder: (c, _) => Container(
-            decoration: BoxDecoration(
+      barrierColor: Colors.black.withValues(alpha: 0.38),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(6),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(32)),
+          child: BlocProvider(
+            create: (_) => MockMotorCubit(),
+            child: Container(
               color: context.color.surfacePrimary,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: Column(children: [
-              Container(
-                margin: const EdgeInsets.only(top: 10, bottom: 4),
-                width: 36, height: 4,
-                decoration: BoxDecoration(color: context.color.borderNormal, borderRadius: BorderRadius.circular(100)),
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(ctx).size.height - 60,
               ),
-              Expanded(child: PairDeviceModal(motorType: motorType)),
-            ]),
+              child: PairDeviceModal(motorType: motorType),
+            ),
           ),
         ),
       ),
@@ -610,16 +580,16 @@ class _TroubleshootPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _TroubleshootCard(icon: Icons.cable_outlined, title: 'Make sure the monitor is charging',
+          const _TroubleshootCard(icon: Icons.cable_outlined, title: 'Make sure the monitor is charging',
             description: 'The monitor must be plugged in throughout the entire setup. A low battery can interrupt the connection mid-process.'),
           const SizedBox(height: 12),
-          _TroubleshootCard(icon: Icons.bluetooth, title: 'Enable Bluetooth and stay close',
+          const _TroubleshootCard(icon: Icons.bluetooth, title: 'Enable Bluetooth and stay close',
             description: 'Bluetooth must be enabled on your phone. Stay within arm\'s reach of the monitor for the full duration of setup.'),
           const SizedBox(height: 12),
-          _TroubleshootCard(icon: Icons.wifi, title: 'Check your WiFi network',
+          const _TroubleshootCard(icon: Icons.wifi, title: 'Check your WiFi network',
             description: 'The monitor only supports 2.4 GHz networks. Make sure your WiFi password is correct — it must be 8–63 characters.'),
           const SizedBox(height: 12),
-          _TroubleshootCard(icon: Icons.restart_alt, title: 'Reset the monitor to factory settings',
+          const _TroubleshootCard(icon: Icons.restart_alt, title: 'Reset the monitor to factory settings',
             description: 'Hold the button on the monitor for 15 seconds until the LED starts blinking white. Then start setup from the beginning.'),
           const SizedBox(height: 20),
           Center(child: Text.rich(TextSpan(

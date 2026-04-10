@@ -91,3 +91,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  fonts:
+    - family: KeplerStd
+      fonts:
+        - asset: assets/fonts/Kepler-Std-Display.otf
+          weight: 400

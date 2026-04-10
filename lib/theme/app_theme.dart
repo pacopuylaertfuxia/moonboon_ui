@@ -35,14 +35,14 @@ TextTheme _buildTextTheme(Brightness brightness) {
 
   return TextTheme(
     headlineLarge: TextStyle(
-      fontFamily: 'Georgia',
+      fontFamily: 'KeplerStd',
       fontSize: 38,
       fontWeight: FontWeight.w400,
       color: textColor,
       letterSpacing: -0.5,
     ),
     headlineSmall: TextStyle(
-      fontFamily: 'Georgia',
+      fontFamily: 'KeplerStd',
       fontSize: 32,
       fontWeight: FontWeight.w400,
       color: secondaryText,

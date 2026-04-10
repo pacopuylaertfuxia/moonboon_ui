@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-typedef WrapperBuilder = Widget Function(BuildContext context, Widget child);
+typedef WidgetChildBuilder = Widget Function(BuildContext context, Widget child);
 
 class WrapIf extends StatelessWidget {
   final bool condition;
-  final WrapperBuilder wrapper;
+  final WidgetChildBuilder wrapper;
   final Widget child;
 
   const WrapIf({
@@ -16,6 +16,9 @@ class WrapIf extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return condition ? wrapper(context, child) : child;
+    if (condition) {
+      return wrapper(context, child);
+    }
+    return child;
   }
 }
