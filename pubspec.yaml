@@ -36,6 +36,7 @@ dependencies:
   flutter_svg: ^2.0.10+1
   app_settings: ^5.1.1
   screen_corner_radius: ^3.0.0
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -56,6 +57,13 @@ flutter:
   assets:
     - assets/illustrations/monitor/
     - assets/icons/utility/
+    - assets/icons/battery/
+    - assets/icons/signal/
+    - assets/icons/volume/
+    - assets/icons/controls/
+    - assets/icons/fullscreen/
+    - assets/icons/feedback/
+    - assets/icons/notification/
     - assets/illustrations/
     - assets/illustrations/connect/light/
     - assets/illustrations/connect/dark/

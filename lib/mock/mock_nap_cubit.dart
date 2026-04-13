@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 // ── Source ────────────────────────────────────────────────────────────────────
@@ -37,6 +38,8 @@ class MockNapState {
   final DateTime now;
   final bool isMotorRunning;
   final bool isMonitorActive;
+  // Key: date string (yyyy-MM-dd), value: list of photo bytes
+  final Map<String, List<Uint8List>> photosByDate;
 
   const MockNapState({
     required this.selectedDate,
@@ -46,9 +49,11 @@ class MockNapState {
     this.activeNapSource = NapSource.manual,
     this.isMotorRunning = false,
     this.isMonitorActive = false,
+    this.photosByDate = const {},
   });
 
   List<MockNap> get napsForDate => napsByDate[_dateKey(selectedDate)] ?? const [];
+  List<Uint8List> get photosForDate => photosByDate[_dateKey(selectedDate)] ?? const [];
   bool get isAtToday => selectedDate == _todayMidnight();
   Duration get activeNapDuration =>
       activeNapStart == null ? Duration.zero : now.difference(activeNapStart!);
@@ -62,6 +67,7 @@ class MockNapState {
     DateTime? now,
     bool? isMotorRunning,
     bool? isMonitorActive,
+    Map<String, List<Uint8List>>? photosByDate,
   }) =>
       MockNapState(
         selectedDate: selectedDate ?? this.selectedDate,
@@ -71,6 +77,7 @@ class MockNapState {
         now: now ?? this.now,
         isMotorRunning: isMotorRunning ?? this.isMotorRunning,
         isMonitorActive: isMonitorActive ?? this.isMonitorActive,
+        photosByDate: photosByDate ?? this.photosByDate,
       );
 
   MockNapState withStoppedNap(MockNap nap) {
@@ -177,6 +184,13 @@ class MockNapCubit extends Cubit<MockNapState> {
 
   void toggleMonitor() =>
       emit(state.copyWith(isMonitorActive: !state.isMonitorActive));
+
+  void addPhoto(Uint8List bytes) {
+    final key = _dateKey(state.selectedDate);
+    final updated = Map<String, List<Uint8List>>.from(state.photosByDate);
+    updated[key] = [...(updated[key] ?? const []), bytes];
+    emit(state.copyWith(photosByDate: updated));
+  }
 
   @override
   Future<void> close() {

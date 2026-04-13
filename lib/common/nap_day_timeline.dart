@@ -35,14 +35,14 @@ class NapDayTimeline extends StatelessWidget {
       children: [
         // ── Bar ───────────────────────────────────────────────────────────────
         Container(
-          height: 44,
+          height: 52,
           decoration: BoxDecoration(
             color: c.surfacePrimary,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: c.borderNormal),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: c.borderSubdued),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(11),
+            borderRadius: BorderRadius.circular(15),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final w = constraints.maxWidth;
@@ -55,20 +55,20 @@ class NapDayTimeline extends StatelessWidget {
                       _NapBlock(
                         left: _fraction(nap.start) * w,
                         width: (_fraction(nap.end) - _fraction(nap.start)) * w,
-                        color: c.brandPrimary.withValues(alpha: 0.75),
+                        color: c.brandPrimary.withValues(alpha: 0.65),
                       ),
-                    // Active nap block (pulsing tint)
+                    // Active nap block
                     if (activeNapStart != null)
                       _NapBlock(
                         left: _fraction(activeNapStart!) * w,
                         width: (nowFraction - _fraction(activeNapStart!)).clamp(0.0, 1.0) * w,
-                        color: c.brandSecondary.withValues(alpha: 0.45),
+                        color: c.brandPrimary.withValues(alpha: 0.3),
                       ),
                     // Current-time cursor
                     Positioned(
                       left: (nowFraction * w - 1).clamp(0.0, w - 2),
-                      top: 6,
-                      bottom: 6,
+                      top: 8,
+                      bottom: 8,
                       child: Container(
                         width: 2,
                         decoration: BoxDecoration(
