@@ -1,0 +1,458 @@
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+import '../common/modal_sheet.dart';
+import '../common/moonboon_scaffold.dart';
+import '../common/noise_detection_picker_button.dart';
+import '../common/telemetry_panel.dart';
+import '../setup_flow/component/noise_detection_body.dart';
+import '../theme/theme_colors.dart';
+import 'mock_monitor_settings_page.dart';
+
+/// Mock of the live monitor stream page — token mapping from Figma node 416:2182.
+class MockMonitorStreamPage extends StatefulWidget {
+  const MockMonitorStreamPage({super.key});
+
+  @override
+  State<MockMonitorStreamPage> createState() => _MockMonitorStreamPageState();
+}
+
+class _MockMonitorStreamPageState extends State<MockMonitorStreamPage> {
+  NoiseDetectionLevel _noiseDetection = NoiseDetectionLevel.high;
+  bool _onlyBabyCries = false;
+
+  void _openNoiseSheet() {
+    ModalSheet.show(
+      context: context,
+      child: NoiseDetectionBody(
+        level: _noiseDetection,
+        onlyBabyCries: _onlyBabyCries,
+        onLevelSelected: (level) => setState(() => _noiseDetection = level),
+        onOnlyBabyCriesChanged: (v) => setState(() => _onlyBabyCries = v),
+        onContinue: () => Navigator.of(context).pop(),
+        continueLabel: 'Done',
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+    final barHeight = topPadding + kToolbarHeight;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return MoonboonScaffold(
+      appBar: MoonboonAppBar(
+        padding: EdgeInsets.zero,
+        titleWidget: NoiseDetectionPickerButton(
+          level: _noiseDetection,
+          isUpdating: false,
+          onTap: _openNoiseSheet,
+        ),
+        trailing: IconButton(
+          icon: SvgPicture.asset(
+            'assets/icons/settings.svg',
+            colorFilter: ColorFilter.mode(context.color.textPrimary, BlendMode.srcIn),
+          ),
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const MockMonitorSettingsPage()),
+          ),
+        ),
+      ),
+      body: Padding(
+        padding: EdgeInsets.only(top: barHeight),
+        child: _StreamBody(bottomPadding: bottomPadding),
+      ),
+    );
+  }
+}
+
+class _StreamBody extends StatefulWidget {
+  final double bottomPadding;
+  const _StreamBody({required this.bottomPadding});
+
+  @override
+  State<_StreamBody> createState() => _StreamBodyState();
+}
+
+class _StreamBodyState extends State<_StreamBody> {
+  bool _showFirmwareCard = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.color;
+    return CustomScrollView(
+      slivers: [
+        // Telemetry row — surfacePrimary bg + surfaceQuaternary border
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 6.0, bottom: 12.0, left: 16.0, right: 16.0),
+            child: const TelemetryPanel(
+              batteryLevel: 0.62,
+              isCharging: false,
+              signalStrength: 0.90,
+              temperature: 23,
+            ),
+          ),
+        ),
+        // Video preview — full-width with right-edge button pill
+        SliverToBoxAdapter(
+          child: _VideoPreview(),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 16)),
+        // Firmware update card
+        if (_showFirmwareCard) SliverToBoxAdapter(
+          child: _FirmwareUpdateCard(c: c, onDismiss: () => setState(() => _showFirmwareCard = false)),
+        ),
+        if (_showFirmwareCard) const SliverToBoxAdapter(child: SizedBox(height: 16)),
+        // Notifications section header
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 24, right: 24, bottom: 8),
+            child: Text(
+              'Notifications',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(color: c.textPrimary),
+            ),
+          ),
+        ),
+        // Notification cards — surfaceQuaternary border, textSecondary titles
+        SliverList.separated(
+          itemCount: _mockNotifications.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (context, i) => _NotificationCard(n: _mockNotifications[i]),
+        ),
+        SliverToBoxAdapter(child: SizedBox(height: widget.bottomPadding + 24)),
+      ],
+    );
+  }
+}
+
+// ── Video preview ────────────────────────────────────────────────────────────
+
+class _VideoPreview extends StatelessWidget {
+  const _VideoPreview();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.color;
+    return SizedBox(
+      height: 226,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Camera feed placeholder
+          Container(
+            color: Colors.black,
+            child: Center(
+              child: Icon(Icons.videocam_off_rounded, color: c.textTertiary, size: 40),
+            ),
+          ),
+          // Right-edge button pill — surfacePrimary + surfaceQuaternary border (Figma mapping)
+          Positioned(
+            right: 12,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _VideoButtonPill(c: c),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VideoButtonPill extends StatelessWidget {
+  final ThemeColors c;
+  const _VideoButtonPill({required this.c});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(100),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: c.surfacePrimary,
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(color: c.surfaceQuaternary),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _PillButton(assetPath: 'assets/icons/fullscreen/maximize.svg', isFirst: true, c: c),
+              _PillButton(assetPath: 'assets/icons/volume/volume_on.svg', c: c),
+              _PillButton(assetPath: 'assets/icons/controls/camera.svg', isLast: true, c: c),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PillButton extends StatelessWidget {
+  final String assetPath;
+  final bool isFirst;
+  final bool isLast;
+  final ThemeColors c;
+  const _PillButton({required this.assetPath, required this.c, this.isFirst = false, this.isLast = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 10, right: 10,
+        top: isFirst ? 16 : 8,
+        bottom: isLast ? 16 : 8,
+      ),
+      child: SvgPicture.asset(
+        assetPath,
+        width: 24,
+        height: 24,
+        colorFilter: ColorFilter.mode(c.textPrimary, BlendMode.srcIn),
+      ),
+    );
+  }
+}
+
+// ── Firmware update card ─────────────────────────────────────────────────────
+
+class _FirmwareUpdateCard extends StatelessWidget {
+  final ThemeColors c;
+  final VoidCallback onDismiss;
+  const _FirmwareUpdateCard({required this.c, required this.onDismiss});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 12, 16),
+        decoration: BoxDecoration(
+          color: c.surfacePrimary,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: c.surfaceQuaternary),
+        ),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Update required',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(color: c.textPrimary),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'From time to time, we release firmware upgrades to enhance your experience. Please be patient, as this process takes a few minutes and will require you to reconnect to the Monitor afterwards.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: c.textSecondary),
+                ),
+                const SizedBox(height: 16),
+                // CTA button — surfaceTertiary bg (the high-contrast token)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: c.surfaceTertiary,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Text(
+                    'Update firmware',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: c.textPrimary),
+                  ),
+                ),
+              ],
+            ),
+            // Close button
+            Positioned(
+              top: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: onDismiss,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: c.surfaceQuaternary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.close, size: 16, color: c.textPrimary),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Notification cards ───────────────────────────────────────────────────────
+
+class _MockNotification {
+  final String type; // 'sound' | 'cry' | 'alert' | 'play'
+  final String title;
+  final String body;
+  final String timeAgo;
+  final bool isIntelligent;
+  const _MockNotification({
+    required this.type,
+    required this.title,
+    required this.body,
+    required this.timeAgo,
+    this.isIntelligent = false,
+  });
+}
+
+const _mockNotifications = [
+  _MockNotification(
+    type: 'sound',
+    title: 'Sound detected',
+    body: 'Your baby might need your attention',
+    timeAgo: 'Just now',
+    isIntelligent: true,
+  ),
+  _MockNotification(
+    type: 'cry',
+    title: 'Cry detected',
+    body: 'We recommend checking up on your baby to see if everything is ok',
+    timeAgo: '3m ago',
+    isIntelligent: true,
+  ),
+  _MockNotification(
+    type: 'alert',
+    title: 'Uncertain sound detected',
+    body: 'We picked up some sound',
+    timeAgo: '17m ago',
+    isIntelligent: true,
+  ),
+  _MockNotification(
+    type: 'play',
+    title: 'Streaming started',
+    body: 'You are successfully streaming',
+    timeAgo: '32m ago',
+  ),
+];
+
+TextStyle? _getLabelStyle(BuildContext context) =>
+    Theme.of(context).textTheme.labelSmall?.copyWith(
+      color: context.color.textTertiary,
+    );
+
+class _NotificationCard extends StatelessWidget {
+  final _MockNotification n;
+  const _NotificationCard({required this.n});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.color;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 12, 4),
+        decoration: BoxDecoration(
+          color: c.surfacePrimary,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: c.surfaceQuaternary), // surfaceQuaternary per Figma
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                _NotificationIcon(type: n.type, c: c),
+                Expanded(
+                  child: Text(
+                    n.title,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: c.textSecondary, // textSecondary per Figma (warm sand, not white)
+                    ),
+                  ),
+                ),
+                Text(n.timeAgo, style: _getLabelStyle(context)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              n.body,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: c.textTertiary),
+            ),
+            if (n.isIntelligent) _FeedbackRow(c: c) else const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationIcon extends StatelessWidget {
+  final String type;
+  final ThemeColors c;
+  const _NotificationIcon({required this.type, required this.c});
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = switch (type) {
+      'sound' => 'assets/icons/volume/volume_on.svg',
+      'cry'   => 'assets/icons/feedback/face_frown.svg',
+      'alert' => 'assets/icons/notification/alert_circle.svg',
+      'play'  => 'assets/icons/controls/play.svg',
+      _       => null,
+    };
+    if (icon == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(right: 6.0),
+      child: SvgPicture.asset(
+        icon,
+        width: 18,
+        height: 18,
+        colorFilter: ColorFilter.mode(c.brandSecondary, BlendMode.srcIn),
+      ),
+    );
+  }
+}
+
+class _FeedbackRow extends StatelessWidget {
+  final ThemeColors c;
+  const _FeedbackRow({required this.c});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text('Was this accurate?', style: _getLabelStyle(context)),
+        const SizedBox(width: 8),
+        _ThumbButton(assetPath: 'assets/icons/feedback/positive.svg', c: c),
+        _ThumbButton(assetPath: 'assets/icons/feedback/negative.svg', c: c),
+      ],
+    );
+  }
+}
+
+class _ThumbButton extends StatelessWidget {
+  final String assetPath;
+  final ThemeColors c;
+  const _ThumbButton({required this.assetPath, required this.c});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(100),
+      onTap: () {},
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: SvgPicture.asset(
+          assetPath,
+          width: 20,
+          height: 20,
+          colorFilter: ColorFilter.mode(c.borderStrong, BlendMode.srcIn),
+        ),
+      ),
+    );
+  }
+}
