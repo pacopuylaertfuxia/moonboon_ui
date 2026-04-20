@@ -57,6 +57,8 @@ final class MonitorFinalConfiguration extends MonitorState {
   MonitorFinalConfiguration(this.monitorName, this.step);
 }
 
+final class MonitorSoundMonitoringConsentStep extends MonitorState {}
+
 final class MonitorStreamingConsentStep extends MonitorState {}
 
 final class MonitorNoiseDetectionStep extends MonitorState {}

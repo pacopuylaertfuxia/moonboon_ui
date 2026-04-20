@@ -1,13 +1,14 @@
 import SwiftUI
 
 enum MB {
-    static let clay        = Color(hex: "#B59E85")
-    static let olive       = Color(hex: "#70695F")
-    static let textDark    = Color(hex: "#1A1008")
-    static let surfaceWarm = Color(hex: "#F5F3F1")
-    static let creme       = Color(hex: "#F1E8DE")
-    static let apricot     = Color(hex: "#E5D5C5")
-    static let darkBg      = Color(hex: "#0F0D0B")
+    static let clay          = Color(hex: "#B59E85")
+    static let olive         = Color(hex: "#70695F")
+    static let textDark      = Color(hex: "#1A1008")
+    static let textSecondary = Color(hex: "#464545")  // text/secondary — used on cream bg
+    static let surfaceWarm   = Color(hex: "#F5F3F1")
+    static let creme         = Color(hex: "#F1E8DE")
+    static let apricot       = Color(hex: "#E5D5C5")
+    static let darkBg        = Color(hex: "#0F0D0B")
 
     static func statusColor(_ label: String) -> Color {
         switch label {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/theme_colors.dart';
 import 'device_radius.dart';
 
@@ -77,14 +78,19 @@ class ModalSheet extends StatelessWidget {
           barrierColor ??
           (Theme.of(context).brightness == Brightness.dark
               ? Colors.black.withValues(alpha: 0.75)
-              : Colors.black38),
+              : Colors.black.withValues(alpha: 0.38)),
       backgroundColor: Colors.transparent,
       elevation: 0.0,
       isScrollControlled: true,
       isDismissible: isDismissible,
       enableDrag: enableDrag,
       builder: (context) => Padding(
-        padding: const EdgeInsets.all(6.0),
+        padding: EdgeInsets.fromLTRB(
+          6,
+          6,
+          6,
+          6 + MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: ModalSheet(
           title: title,
           description: description,
@@ -105,14 +111,12 @@ class ModalSheet extends StatelessWidget {
         ? MediaQuery.of(context).viewPadding.bottom
         : 16.0;
 
-    final padding = hasPadding
-        ? EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            bottomSafeArea,
-          )
-        : EdgeInsets.zero;
+    final padding = EdgeInsets.fromLTRB(
+      hasPadding ? 16 : 0,
+      32,
+      hasPadding ? 16 : 0,
+      hasPadding ? bottomSafeArea : 0,
+    );
 
     // Matches production: bottom corners = device screen corner radius - 4.
     // 0 = flat (older Android/devices with no rounded corners).
@@ -151,7 +155,12 @@ class ModalSheet extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 16),
+                        icon: SvgPicture.asset(
+                          'assets/icons/utility/close.svg',
+                          colorFilter: ColorFilter.mode(context.color.textPrimary, BlendMode.srcIn),
+                          width: 16,
+                          height: 16,
+                        ),
                         onPressed: onClose ?? () => Navigator.of(context).pop(),
                         style: IconButton.styleFrom(
                           backgroundColor: _getModalSheetCloseButtonColor(
@@ -258,7 +267,6 @@ class ModalSheetTitle extends StatelessWidget {
       style:
           style ??
           theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
           ),
     );

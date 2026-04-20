@@ -1,37 +1,34 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
+import 'theme_colors.dart';
 
-ThemeData buildLightTheme() {
+// Builds a ThemeData for any ThemeColors variant — used by the variant switcher
+ThemeData buildThemeWithColors(ThemeColors colors, Brightness brightness) {
   return ThemeData(
-    brightness: Brightness.light,
-    scaffoldBackgroundColor: offWhite,
-    colorScheme: const ColorScheme.light(
-      primary: clay,
-      secondary: olive,
-      surface: white,
-    ),
-    textTheme: _buildTextTheme(Brightness.light),
+    brightness: brightness,
+    scaffoldBackgroundColor: colors.surfaceSecondary,
+    colorScheme: brightness == Brightness.light
+        ? ColorScheme.light(
+            primary: colors.brandPrimary,
+            secondary: colors.brandSecondary,
+            surface: colors.surfacePrimary,
+          )
+        : ColorScheme.dark(
+            primary: colors.brandPrimary,
+            secondary: colors.brandSecondary,
+            surface: colors.surfacePrimary,
+          ),
+    textTheme: _buildTextTheme(brightness),
+    extensions: [ThemeColorsData(colors)],
     useMaterial3: true,
   );
 }
 
-ThemeData buildDarkTheme() {
-  return ThemeData(
-    brightness: Brightness.dark,
-    scaffoldBackgroundColor: black,
-    colorScheme: const ColorScheme.dark(
-      primary: clay,
-      secondary: mutedApricot,
-      surface: black,
-    ),
-    textTheme: _buildTextTheme(Brightness.dark),
-    useMaterial3: true,
-  );
-}
+ThemeData buildLightTheme() => buildThemeWithColors(ThemeColors.light, Brightness.light);
+ThemeData buildDarkTheme() => buildThemeWithColors(ThemeColors.dark, Brightness.dark);
 
 TextTheme _buildTextTheme(Brightness brightness) {
   final textColor = brightness == Brightness.dark ? white : black;
-  final secondaryText = brightness == Brightness.dark ? clay : obsadianGrey;
 
   return TextTheme(
     headlineLarge: TextStyle(
@@ -45,7 +42,7 @@ TextTheme _buildTextTheme(Brightness brightness) {
       fontFamily: 'KeplerStd',
       fontSize: 32,
       fontWeight: FontWeight.w400,
-      color: secondaryText,
+      color: textColor,
       height: 1.0,
     ),
     titleLarge: TextStyle(

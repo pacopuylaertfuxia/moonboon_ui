@@ -2,63 +2,110 @@ import ActivityKit
 import SwiftUI
 import WidgetKit
 
-// MARK: - Widget
+// MARK: - Monitor Widget
 
-struct MoonboonLiveActivityWidget: Widget {
+struct MonitorLiveActivityWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: MoonboonActivityAttributes.self) { context in
             switch context.attributes.designVariant {
-            case 2:  V2LockScreen(attrs: context.attributes, state: context.state)
-            case 3:  V3LockScreen(attrs: context.attributes, state: context.state)
-            case 4:  V4LockScreen(attrs: context.attributes, state: context.state)
-            case 5:  V5LockScreen(attrs: context.attributes, state: context.state)
-            case 6:  V6LockScreen(attrs: context.attributes, state: context.state)
-            case 7:  V7LockScreen(attrs: context.attributes, state: context.state)
-            default: V1LockScreen(attrs: context.attributes, state: context.state)
+            case 2:  MonitorBLockScreen(attrs: context.attributes, state: context.state)
+            case 8:  V8LockScreen(attrs: context.attributes, state: context.state)
+            case 9:  V9LockScreen(attrs: context.attributes, state: context.state)
+            case 10: V10LockScreen(attrs: context.attributes, state: context.state)
+            default: MonitorLockScreen(attrs: context.attributes, state: context.state)
             }
         } dynamicIsland: { context in
-            DynamicIsland {
+            let v = context.attributes.designVariant
+            return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    switch context.attributes.designVariant {
-                    case 2:  V2Expanded(attrs: context.attributes, state: context.state)
-                    case 3:  V3Expanded(attrs: context.attributes, state: context.state)
-                    case 4:  V4Expanded(attrs: context.attributes, state: context.state)
-                    case 5:  V5Expanded(attrs: context.attributes, state: context.state)
-                    case 6:  V6Expanded(attrs: context.attributes, state: context.state)
-                    case 7:  V7Expanded(attrs: context.attributes, state: context.state)
-                    default: V1Expanded(attrs: context.attributes, state: context.state)
+                    if v == 2 {
+                        MonitorBExpandedLeading(state: context.state)
+                    } else if v == 8 {
+                        V8ExpandedLeading(state: context.state)
+                    } else if v == 9 {
+                        V9ExpandedLeading(attrs: context.attributes, state: context.state)
+                    } else if v == 10 {
+                        V10ExpandedLeading(attrs: context.attributes, state: context.state)
+                    } else {
+                        MonitorExpandedLeading(attrs: context.attributes, state: context.state)
+                    }
+                }
+                DynamicIslandExpandedRegion(.center) {
+                    if v == 10 {
+                        V10ExpandedCenter(state: context.state)
+                    }
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    if v == 2 {
+                        MonitorBExpandedTrailing(state: context.state)
+                    } else if v == 8 {
+                        V8ExpandedTrailing(state: context.state)
+                    } else if v == 9 {
+                        V9ExpandedTrailing(state: context.state)
+                    } else if v == 10 {
+                        V10ExpandedTrailing(state: context.state)
+                    } else {
+                        MonitorExpandedTrailing(state: context.state)
                     }
                 }
             } compactLeading: {
-                switch context.attributes.designVariant {
-                case 2:  V2CompactLeading(state: context.state)
-                case 3:  V3CompactLeading(state: context.state)
-                case 4:  V4CompactLeading(state: context.state)
-                case 5:  V5CompactLeading(state: context.state)
-                case 6:  V6CompactLeading(state: context.state)
-                case 7:  V7CompactLeading(state: context.state)
-                default: V1CompactLeading(attrs: context.attributes, state: context.state)
+                if v == 2 {
+                    MonitorBCompactLeading(state: context.state)
+                } else if v == 8 {
+                    V8CompactLeading(state: context.state)
+                } else if v == 9 {
+                    V9CompactLeading(state: context.state)
+                } else if v == 10 {
+                    V10CompactLeading(state: context.state)
+                } else {
+                    MonitorCompactLeading(state: context.state)
                 }
             } compactTrailing: {
-                switch context.attributes.designVariant {
-                case 2:  V2CompactTrailing(state: context.state)
-                case 3:  V3CompactTrailing(state: context.state)
-                case 4:  V4CompactTrailing(state: context.state)
-                case 5:  V5CompactTrailing(state: context.state)
-                case 6:  V6CompactTrailing(state: context.state)
-                case 7:  V7CompactTrailing(state: context.state)
-                default: V1CompactTrailing(state: context.state)
+                if v == 2 {
+                    MonitorBCompactTrailing(state: context.state)
+                } else if v == 8 {
+                    V8CompactTrailing(state: context.state)
+                } else if v == 9 {
+                    V9CompactTrailing(state: context.state)
+                } else if v == 10 {
+                    V10CompactTrailing(state: context.state)
+                } else {
+                    MonitorCompactTrailing(state: context.state)
                 }
             } minimal: {
-                switch context.attributes.designVariant {
-                case 2:  V2Minimal(state: context.state)
-                case 3:  V3Minimal(state: context.state)
-                case 4:  V4Minimal(state: context.state)
-                case 5:  V5Minimal(state: context.state)
-                case 6:  V6Minimal(state: context.state)
-                case 7:  V7Minimal(state: context.state)
-                default: V1Minimal(state: context.state)
+                if v == 2 {
+                    MonitorBMinimal(state: context.state)
+                } else if v == 8 {
+                    V8Minimal(state: context.state)
+                } else if v == 9 {
+                    V9Minimal(state: context.state)
+                } else if v == 10 {
+                    V10Minimal(state: context.state)
+                } else {
+                    MonitorMinimal(state: context.state)
                 }
+            }
+        }
+    }
+}
+
+// MARK: - Motor Widget
+
+struct MotorLiveActivityWidget: Widget {
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: MotorActivityAttributes.self) { context in
+            MotorLockScreen(attrs: context.attributes, state: context.state)
+        } dynamicIsland: { context in
+            DynamicIsland {
+                DynamicIslandExpandedRegion(.center) {
+                    MotorExpanded(attrs: context.attributes, state: context.state)
+                }
+            } compactLeading: {
+                MotorCompactLeading(state: context.state)
+            } compactTrailing: {
+                MotorCompactTrailing(state: context.state)
+            } minimal: {
+                MotorMinimal(state: context.state)
             }
         }
     }
@@ -69,6 +116,7 @@ struct MoonboonLiveActivityWidget: Widget {
 @main
 struct MoonboonLiveActivityBundle: WidgetBundle {
     var body: some Widget {
-        MoonboonLiveActivityWidget()
+        MonitorLiveActivityWidget()
+        MotorLiveActivityWidget()
     }
 }

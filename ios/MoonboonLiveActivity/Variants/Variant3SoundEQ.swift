@@ -157,29 +157,4 @@ struct V3Minimal: View {
     }
 }
 
-// MARK: - Preview
-
-#if canImport(WidgetKit) && !targetEnvironment(simulator)
-#Preview("V3 Sleeping", as: .content, using: MoonboonActivityAttributes(babyName: "Emma", designVariant: 3)) {
-    MoonboonLiveActivityWidget()
-} contentStates: {
-    MoonboonActivityAttributes.ContentState(
-        soundLevel: 0.1, isMicMuted: false, temperature: 20,
-        batteryLevel: 85, isCharging: false,
-        statusLabel: "Sleeping", connectionState: "connected",
-        wifiStrength: 0.9, elapsedSeconds: 3900
-    )
-    MoonboonActivityAttributes.ContentState(
-        soundLevel: 0.55, isMicMuted: false, temperature: 22,
-        batteryLevel: 60, isCharging: false,
-        statusLabel: "Awake", connectionState: "connected",
-        wifiStrength: 0.7, elapsedSeconds: 600
-    )
-    MoonboonActivityAttributes.ContentState(
-        soundLevel: 0.9, isMicMuted: true, temperature: 23,
-        batteryLevel: 18, isCharging: false,
-        statusLabel: "Crying", connectionState: "connected",
-        wifiStrength: 0.5, elapsedSeconds: 120
-    )
-}
-#endif
+// No previews — build and test on device

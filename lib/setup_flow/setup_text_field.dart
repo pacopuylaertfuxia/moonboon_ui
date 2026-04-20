@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../common/button.dart';
 import '../common/circular_loading_bar.dart';
-import '../theme/app_colors.dart';
 import '../theme/theme_colors.dart';
 import '../strings/app_strings.dart';
 
@@ -128,7 +127,7 @@ class _SetupTextFieldState extends State<SetupTextField> {
                           _isObscured
                               ? Icons.visibility_off
                               : Icons.visibility,
-                          color: textColor(context).withValues(alpha: 0.6),
+                          color: context.color.textTertiary.withValues(alpha: 0.6),
                           size: 20,
                         ),
                         onPressed: () {

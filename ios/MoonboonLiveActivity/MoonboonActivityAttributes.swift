@@ -20,6 +20,8 @@ struct MoonboonActivityAttributes: ActivityAttributes {
         var monitorMode: String      // "Quiet" | "Standard" | "Maximum" | "Off"
         var humidity: Int?           // % relative humidity
         var napSeconds: Int?         // seconds baby has been quiet/napping
+        var hasCameraFeed: Bool      // true = widget reads frame from App Group container
+        var isPlayingCry: Bool       // true = parent tapped play in DI — audio playing in app
 
         init(
             soundLevel: Double, isMicMuted: Bool, temperature: Int?,
@@ -27,7 +29,8 @@ struct MoonboonActivityAttributes: ActivityAttributes {
             connectionState: String, wifiStrength: Double, elapsedSeconds: Int,
             motorRunning: Bool = false, motorProgram: String = "",
             monitorOn: Bool = true, monitorMode: String = "Standard",
-            humidity: Int? = nil, napSeconds: Int? = nil
+            humidity: Int? = nil, napSeconds: Int? = nil,
+            hasCameraFeed: Bool = false, isPlayingCry: Bool = false
         ) {
             self.soundLevel      = soundLevel
             self.isMicMuted      = isMicMuted
@@ -44,6 +47,8 @@ struct MoonboonActivityAttributes: ActivityAttributes {
             self.monitorMode     = monitorMode
             self.humidity        = humidity
             self.napSeconds      = napSeconds
+            self.hasCameraFeed   = hasCameraFeed
+            self.isPlayingCry    = isPlayingCry
         }
     }
 

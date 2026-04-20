@@ -110,19 +110,52 @@ class _MockMonitorSettingsPageState extends State<MockMonitorSettingsPage> {
                     // ── 1. Noise detection ───────────────────────────────────
                     _NoiseDetectionCard(
                       level: _noiseDetection,
-                      onTap: () => ModalSheet.show(
-                        context: context,
-                        child: NoiseDetectionBody(
-                          level: _noiseDetection,
-                          onlyBabyCries: _onlyBabyCries,
-                          onLevelSelected: (level) =>
-                              setState(() => _noiseDetection = level),
-                          onOnlyBabyCriesChanged: (v) =>
-                              setState(() => _onlyBabyCries = v),
-                          onContinue: () => Navigator.of(context).pop(),
-                          continueLabel: 'Done',
-                        ),
-                      ),
+                      onTap: () {
+                        bool showHeader = false;
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        showModalBottomSheet(
+                          context: context,
+                          backgroundColor: Colors.transparent,
+                          isScrollControlled: true,
+                          barrierColor: isDark
+                              ? Colors.black.withValues(alpha: 0.75)
+                              : Colors.black.withValues(alpha: 0.38),
+                          builder: (ctx) => StatefulBuilder(
+                            builder: (ctx, setSheetState) => Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ModeSelectionVariantToggle(
+                                  showHeader: showHeader,
+                                  onChanged: (v) => setSheetState(() => showHeader = v),
+                                ),
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
+                                  child: ModalSheet(
+                                    hasPadding: false,
+                                    duration: Duration.zero,
+                                    background: ModalSheetBackground.cream,
+                                    child: NoiseDetectionBody(
+                                      level: _noiseDetection,
+                                      onlyBabyCries: _onlyBabyCries,
+                                      title: showHeader ? 'Mode selection' : null,
+                                      subtitle: showHeader
+                                          ? 'Choose how sensitive the monitor should be to sounds.'
+                                          : null,
+                                      onLevelSelected: (level) =>
+                                          setState(() => _noiseDetection = level),
+                                      onOnlyBabyCriesChanged: (v) =>
+                                          setState(() => _onlyBabyCries = v),
+                                      onContinue: () => Navigator.of(ctx).pop(),
+                                      continueLabel: 'Done',
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
 
                     // ── 2. Monitor settings ──────────────────────────────────

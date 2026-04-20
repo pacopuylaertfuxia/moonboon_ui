@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'dart:ui';
+
+import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -24,15 +27,46 @@ class _MockMonitorStreamPageState extends State<MockMonitorStreamPage> {
   bool _onlyBabyCries = false;
 
   void _openNoiseSheet() {
-    ModalSheet.show(
+    bool showHeader = false;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
       context: context,
-      child: NoiseDetectionBody(
-        level: _noiseDetection,
-        onlyBabyCries: _onlyBabyCries,
-        onLevelSelected: (level) => setState(() => _noiseDetection = level),
-        onOnlyBabyCriesChanged: (v) => setState(() => _onlyBabyCries = v),
-        onContinue: () => Navigator.of(context).pop(),
-        continueLabel: 'Done',
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      barrierColor: isDark
+          ? Colors.black.withValues(alpha: 0.75)
+          : Colors.black.withValues(alpha: 0.38),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ModeSelectionVariantToggle(
+              showHeader: showHeader,
+              onChanged: (v) => setSheetState(() => showHeader = v),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
+              child: ModalSheet(
+                hasPadding: false,
+                duration: Duration.zero,
+                background: ModalSheetBackground.cream,
+                child: ModeSelectionBody(
+                  level: _noiseDetection,
+                  onlyBabyCries: _onlyBabyCries,
+                  title: showHeader ? 'Mode selection' : null,
+                  subtitle: showHeader
+                      ? 'Choose how sensitive the monitor should be to sounds.'
+                      : null,
+                  onLevelSelected: (level) => setState(() => _noiseDetection = level),
+                  onOnlyBabyCriesChanged: (v) => setState(() => _onlyBabyCries = v),
+                  onContinue: () => Navigator.of(ctx).pop(),
+                  continueLabel: 'Done',
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -86,10 +120,10 @@ class _StreamBodyState extends State<_StreamBody> {
     return CustomScrollView(
       slivers: [
         // Telemetry row — surfacePrimary bg + surfaceQuaternary border
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.only(top: 6.0, bottom: 12.0, left: 16.0, right: 16.0),
-            child: const TelemetryPanel(
+            padding: EdgeInsets.only(top: 6.0, bottom: 12.0, left: 16.0, right: 16.0),
+            child: TelemetryPanel(
               batteryLevel: 0.62,
               isCharging: false,
               signalStrength: 0.90,
@@ -98,7 +132,7 @@ class _StreamBodyState extends State<_StreamBody> {
           ),
         ),
         // Video preview — full-width with right-edge button pill
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: _VideoPreview(),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 16)),
@@ -131,8 +165,61 @@ class _StreamBodyState extends State<_StreamBody> {
 
 // ── Video preview ────────────────────────────────────────────────────────────
 
-class _VideoPreview extends StatelessWidget {
+class _VideoPreview extends StatefulWidget {
   const _VideoPreview();
+
+  @override
+  State<_VideoPreview> createState() => _VideoPreviewState();
+}
+
+class _VideoPreviewState extends State<_VideoPreview>
+    with SingleTickerProviderStateMixin {
+  static const _channel = MethodChannel('com.moonboon/video_player');
+
+  bool _isPlaying = true;
+  bool _isPip = false;
+  late final AnimationController _iconCtrl;
+  late final Animation<double> _iconOpacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _iconCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+    );
+    _iconOpacity = CurvedAnimation(parent: _iconCtrl, curve: Curves.easeOut);
+
+    _channel.setMethodCallHandler((call) async {
+      if (call.method == 'playStateChanged') {
+        setState(() => _isPlaying = call.arguments as bool);
+        await _iconCtrl.forward(from: 0);
+        await Future.delayed(const Duration(milliseconds: 700));
+        if (mounted) await _iconCtrl.reverse();
+      } else if (call.method == 'pipStateChanged') {
+        if (mounted) setState(() => _isPip = call.arguments as bool);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _channel.setMethodCallHandler(null);
+    _iconCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _togglePip() async {
+    try {
+      if (_isPip) {
+        await _channel.invokeMethod('stopPip');
+      } else {
+        await _channel.invokeMethod('startPip');
+      }
+    } catch (e) {
+      debugPrint('[PiP] error: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,11 +229,36 @@ class _VideoPreview extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Camera feed placeholder
-          Container(
-            color: Colors.black,
-            child: Center(
-              child: Icon(Icons.videocam_off_rounded, color: c.textTertiary, size: 40),
+          // Camera feed — native video player (sample.mov from Runner bundle)
+          if (Platform.isIOS)
+            const UiKitView(
+              viewType: 'com.moonboon/native_video_player',
+              creationParamsCodec: StandardMessageCodec(),
+            )
+          else
+            Container(
+              color: Colors.black,
+              child: Center(
+                child: Icon(Icons.videocam_off_rounded, color: c.textTertiary, size: 40),
+              ),
+            ),
+          // Play/pause icon flash on tap
+          Center(
+            child: FadeTransition(
+              opacity: _iconOpacity,
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _isPlaying ? Icons.play_arrow_rounded : Icons.pause_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
             ),
           ),
           // Right-edge button pill — surfacePrimary + surfaceQuaternary border (Figma mapping)
@@ -155,7 +267,7 @@ class _VideoPreview extends StatelessWidget {
             top: 0,
             bottom: 0,
             child: Center(
-              child: _VideoButtonPill(c: c),
+              child: _VideoButtonPill(c: c, isPip: _isPip, onPipTap: _togglePip),
             ),
           ),
         ],
@@ -166,7 +278,9 @@ class _VideoPreview extends StatelessWidget {
 
 class _VideoButtonPill extends StatelessWidget {
   final ThemeColors c;
-  const _VideoButtonPill({required this.c});
+  final bool isPip;
+  final VoidCallback onPipTap;
+  const _VideoButtonPill({required this.c, required this.isPip, required this.onPipTap});
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +297,14 @@ class _VideoButtonPill extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _PillButton(assetPath: 'assets/icons/fullscreen/maximize.svg', isFirst: true, c: c),
+              _PillButton(
+                assetPath: isPip
+                    ? 'assets/icons/fullscreen/minimize.svg'
+                    : 'assets/icons/fullscreen/maximize.svg',
+                isFirst: true,
+                c: c,
+                onTap: onPipTap,
+              ),
               _PillButton(assetPath: 'assets/icons/volume/volume_on.svg', c: c),
               _PillButton(assetPath: 'assets/icons/controls/camera.svg', isLast: true, c: c),
             ],
@@ -199,11 +320,18 @@ class _PillButton extends StatelessWidget {
   final bool isFirst;
   final bool isLast;
   final ThemeColors c;
-  const _PillButton({required this.assetPath, required this.c, this.isFirst = false, this.isLast = false});
+  final VoidCallback? onTap;
+  const _PillButton({
+    required this.assetPath,
+    required this.c,
+    this.isFirst = false,
+    this.isLast = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final icon = Padding(
       padding: EdgeInsets.only(
         left: 10, right: 10,
         top: isFirst ? 16 : 8,
@@ -216,6 +344,10 @@ class _PillButton extends StatelessWidget {
         colorFilter: ColorFilter.mode(c.textPrimary, BlendMode.srcIn),
       ),
     );
+    if (onTap != null) {
+      return GestureDetector(onTap: onTap, child: icon);
+    }
+    return icon;
   }
 }
 
@@ -456,3 +588,4 @@ class _ThumbButton extends StatelessWidget {
     );
   }
 }
+

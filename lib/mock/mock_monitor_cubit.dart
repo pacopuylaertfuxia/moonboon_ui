@@ -120,17 +120,25 @@ class MockMonitorCubit extends Cubit<MonitorState> {
     for (final (delayMs, step) in steps) {
       _delay(delayMs, () => emit(MonitorFinalConfiguration(name, step)));
     }
-    _delay(9000, () => emit(MonitorStreamingConsentStep()));
+    _delay(9000, () => emit(MonitorSoundMonitoringConsentStep()));
   }
 
   // ── Consent & noise detection ─────────────────────────────────
 
-  void giveStreamingConsent() => emit(MonitorNoiseDetectionStep());
+  void giveSoundMonitoringConsent() => emit(MonitorNoiseDetectionStep());
 
-  void refuseStreamingConsent() => emit(MonitorNoiseDetectionStep());
+  void disableSoundMonitoring() => emit(MonitorNoiseDetectionStep());
 
   void setNoiseDetectionLevel(NoiseDetectionLevel level, bool onlyBabyCries) {
-    emit(MonitorProvisioningSuccess(42));
+    emit(MonitorStreamingConsentStep());
+  }
+
+  void giveStreamingConsent() {
+    if (!isClosed) close();
+  }
+
+  void refuseStreamingConsent() {
+    if (!isClosed) close();
   }
 
   // ── Error simulation (for demo/testing) ───────────────────────

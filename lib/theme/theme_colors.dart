@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'app_colors.dart';
 
 class ThemeColors {
   final Color brandPrimary;
   final Color brandSecondary;
+  final Color brandTertiary;
   final Color textPrimary;
   final Color textSecondary;
   final Color textTertiary;
@@ -23,11 +23,13 @@ class ThemeColors {
   final Color feedbackInfo;
   final Color overlayLevel1;
   final Color overlayLevel2;
+  final Color overlayBrand;
   final Color overlayNavButton;
 
   const ThemeColors({
     required this.brandPrimary,
     required this.brandSecondary,
+    required this.brandTertiary,
     required this.textPrimary,
     required this.textSecondary,
     required this.textTertiary,
@@ -47,63 +49,170 @@ class ThemeColors {
     required this.feedbackInfo,
     required this.overlayLevel1,
     required this.overlayLevel2,
+    required this.overlayBrand,
     required this.overlayNavButton,
   });
 
+  // Light: #F5F3F1 bg  |  Dark: #0F0D0B bg
   static const ThemeColors light = ThemeColors(
-    brandPrimary: clay,
-    brandSecondary: olive,
-    textPrimary: black,
-    textSecondary: obsadianGrey,
-    textTertiary: olive,
-    textQuaternary: clay,
-    textInverse: white,
-    textInactive: Color(0xFFCDCDCD),
-    surfacePrimary: white,
-    surfaceSecondary: creme,
-    surfaceTertiary: mutedApricot,
-    surfaceQuaternary: mutedApricot,
-    surfaceSubdued: Color(0x80F5E6D3),
-    borderSubdued: creme,
-    borderNormal: stone,
-    borderStrong: olive,
-    feedbackError: errorRed,
-    feedbackSuccess: successGreen,
-    feedbackInfo: Color(0xFF4A6A85),
-    overlayLevel1: Color(0x33FFFFFF),
-    overlayLevel2: Color(0x80FFFFFF),
-    overlayNavButton: Color(0xE6F1E8DE),
+    brandPrimary:      Color(0xFFB59E85), // clay — both modes
+    brandSecondary:    Color(0xFF70695F), // olive
+    brandTertiary:     Color(0xFFE5D5C5), // mutedApricot
+    textPrimary:       Color(0xFF1A1008),
+    textSecondary:     Color(0xFF464545),
+    textTertiary:      Color(0xFF645D54),
+    textQuaternary:    Color(0xFFB59E85),
+    textInverse:       Color(0xFFF5F3F1),
+    textInactive:      Color(0xFFCDCDCD),
+    surfacePrimary:    Color(0xFFF5F3F1),
+    surfaceSecondary:  Color(0xFFF1E8DE),
+    surfaceTertiary:   Color(0xFFE5D5C5),
+    surfaceQuaternary: Color(0xFFDDD6CC),
+    surfaceSubdued:    Color(0xFFFAF8F6),
+    borderSubdued:     Color(0xFFF1E8DE),
+    borderNormal:      Color(0xFFDDD6CC),
+    borderStrong:      Color(0xFF645D54),
+    feedbackError:     Color(0xFFB94A48),
+    feedbackSuccess:   Color(0xFF5E8A66),
+    feedbackInfo:      Color(0xFF4A6A85),
+    overlayLevel1:     Color(0x33000000), // #000 @20%
+    overlayLevel2:     Color(0x80000000), // #000 @50%
+    overlayBrand:      Color(0x80B59E85), // clay @50%
+    overlayNavButton:  Color(0xE60F0D0B), // #0F0D0B @90%
   );
 
   static const ThemeColors dark = ThemeColors(
-    brandPrimary: clay,
-    brandSecondary: mutedApricot,
-    textPrimary: white,
-    textSecondary: clay,
-    textTertiary: olive,
-    textQuaternary: obsadianGrey,
-    textInverse: black,
-    textInactive: Color(0xFF707070),
-    surfacePrimary: black,
-    surfaceSecondary: offBlack,
-    surfaceTertiary: obsadianGrey,
-    surfaceQuaternary: olive,
-    surfaceSubdued: Color(0x80F5E6D3),
-    borderSubdued: obsadianGrey,
-    borderNormal: clay,
-    borderStrong: clay,
-    feedbackError: Color(0xFFEF5350),
-    feedbackSuccess: liveGreen,
-    feedbackInfo: Color(0xFF5B86A3),
-    overlayLevel1: Color(0x33000000),
-    overlayLevel2: Color(0x80000000),
-    overlayNavButton: Color(0xE6292929),
+    brandPrimary:      Color(0xFFB59E85),
+    brandSecondary:    Color(0xFFE5D5C5),
+    brandTertiary:     Color(0xFF70695F),
+    textPrimary:       Color(0xFFF5F3F1),
+    textSecondary:     Color(0xFFC4AA8E),
+    textTertiary:      Color(0xFF8C8178),
+    textQuaternary:    Color(0xFF8C8178),
+    textInverse:       Color(0xFF1A1008),
+    textInactive:      Color(0xFF707070),
+    surfacePrimary:    Color(0xFF0F0D0B),
+    surfaceSecondary:  Color(0xFF1E1A16),
+    surfaceTertiary:   Color(0xFF2E2820), // barely lifts off page — the problem
+    surfaceQuaternary: Color(0xFF3D352C),
+    surfaceSubdued:    Color(0xFF070503),
+    borderSubdued:     Color(0xFF2E2820),
+    borderNormal:      Color(0xFFB59E85),
+    borderStrong:      Color(0xFFB59E85),
+    feedbackError:     Color(0xFFEF5350),
+    feedbackSuccess:   Color(0xFF66BB6A),
+    feedbackInfo:      Color(0xFF5B86A3),
+    overlayLevel1:     Color(0x33000000),
+    overlayLevel2:     Color(0x80000000),
+    overlayBrand:      Color(0x80B59E85),
+    overlayNavButton:  Color(0xE60F0D0B),
+  );
+
+  // Variant B — stronger lift + warmer midtones: more contrast throughout
+  static const ThemeColors darkVariantB = ThemeColors(
+    brandPrimary:      Color(0xFFB59E85),
+    brandSecondary:    Color(0xFFE5D5C5),
+    brandTertiary:     Color(0xFF70695F),
+    textPrimary:       Color(0xFFF5F3F1),
+    textSecondary:     Color(0xFFD4C4A8), // brighter — body text more legible
+    textTertiary:      Color(0xFFA09688), // brighter
+    textQuaternary:    Color(0xFF9C8878),
+    textInverse:       Color(0xFF1A1008),
+    textInactive:      Color(0xFF707070),
+    surfacePrimary:    Color(0xFF0F0D0B),
+    surfaceSecondary:  Color(0xFF1E1A16),
+    surfaceTertiary:   Color(0xFF5C4E42), // warm mid-brown — CTAs unmistakeable
+    surfaceQuaternary: Color(0xFF746257), // light enough to feel elevated
+    surfaceSubdued:    Color(0xFF070503),
+    borderSubdued:     Color(0xFF3D352C),
+    borderNormal:      Color(0xFFB59E85),
+    borderStrong:      Color(0xFFC4AA8E),
+    feedbackError:     Color(0xFFEF5350),
+    feedbackSuccess:   Color(0xFF66BB6A),
+    feedbackInfo:      Color(0xFF5B86A3),
+    overlayLevel1:     Color(0x33000000),
+    overlayLevel2:     Color(0x80000000),
+    overlayBrand:      Color(0x80B59E85),
+    overlayNavButton:  Color(0xE60F0D0B),
+  );
+
+  // Variant C — max CTA contrast + subtle track ring (best of both worlds)
+  // surfaceTertiary: near-sand buttons, unmistakeable against near-black
+  // surfaceQuaternary: stays close to base Dark so loader track ring is subtle but present
+  static const ThemeColors darkVariantC = ThemeColors(
+    brandPrimary:      Color(0xFFB59E85),
+    brandSecondary:    Color(0xFFE5D5C5),
+    brandTertiary:     Color(0xFF70695F),
+    textPrimary:       Color(0xFFF5F3F1),
+    textSecondary:     Color(0xFFD4C4A8),
+    textTertiary:      Color(0xFFA09688),
+    textQuaternary:    Color(0xFF9C8878),
+    textInverse:       Color(0xFF1A1008),
+    textInactive:      Color(0xFF707070),
+    surfacePrimary:    Color(0xFF0F0D0B),
+    surfaceSecondary:  Color(0xFF1E1A16),
+    surfaceTertiary:   Color(0xFF8C7865), // near-sand — CTAs unmistakeable
+    surfaceQuaternary: Color(0xFF3D352C), // base Dark value — track ring subtle but visible
+    surfaceSubdued:    Color(0xFF070503),
+    borderSubdued:     Color(0xFF3D352C),
+    borderNormal:      Color(0xFFB59E85),
+    borderStrong:      Color(0xFFD4C4A8),
+    feedbackError:     Color(0xFFEF5350),
+    feedbackSuccess:   Color(0xFF66BB6A),
+    feedbackInfo:      Color(0xFF5B86A3),
+    overlayLevel1:     Color(0x33000000),
+    overlayLevel2:     Color(0x80000000),
+    overlayBrand:      Color(0x80B59E85),
+    overlayNavButton:  Color(0xE60F0D0B),
+  );
+
+  // Dark Original — token mapping live in production before Variant C was adopted
+  // Sourced from moonboon_app git @ ff81aa89~1 (lib/utilities/theme/theme_colors.dart)
+  static const ThemeColors darkOriginal = ThemeColors(
+    brandPrimary:      Color(0xFFB59E85), // clay
+    brandSecondary:    Color(0xFFE5D5C5), // mutedApricot
+    brandTertiary:     Color(0xFF70695F), // olive
+    textPrimary:       Color(0xFFFFFEFD), // white
+    textSecondary:     Color(0xFFB59E85), // clay
+    textTertiary:      Color(0xFF70695F), // olive
+    textQuaternary:    Color(0xFF464545), // obsadianGrey
+    textInverse:       Color(0xFF010101), // black
+    textInactive:      Color(0xFF707070),
+    surfacePrimary:    Color(0xFF010101), // black
+    surfaceSecondary:  Color(0xFF292929), // offBlack
+    surfaceTertiary:   Color(0xFF464545), // obsadianGrey
+    surfaceQuaternary: Color(0xFF70695F), // olive
+    surfaceSubdued:    Color(0x80F5E6D3), // mutedApricot @50%
+    borderSubdued:     Color(0xFF464545), // obsadianGrey
+    borderNormal:      Color(0xFFB59E85), // clay
+    borderStrong:      Color(0xFFB59E85), // clay
+    feedbackError:     Color(0xFFEF5350),
+    feedbackSuccess:   Color(0xFF66BB6A),
+    feedbackInfo:      Color(0xFF5B86A3),
+    overlayLevel1:     Color(0x33000000),
+    overlayLevel2:     Color(0x80000000),
+    overlayBrand:      Color(0x8070695F), // olive @50%
+    overlayNavButton:  Color(0xE6292929), // offBlack @90%
   );
 }
 
+// Wraps ThemeColors as a Flutter ThemeExtension so context.color works with any variant
+class ThemeColorsData extends ThemeExtension<ThemeColorsData> {
+  final ThemeColors colors;
+  const ThemeColorsData(this.colors);
+
+  @override
+  ThemeColorsData copyWith({ThemeColors? colors}) =>
+      ThemeColorsData(colors ?? this.colors);
+
+  @override
+  ThemeColorsData lerp(ThemeExtension<ThemeColorsData>? other, double t) => this;
+}
+
 extension ThemeColorsExtension on BuildContext {
-  ThemeColors get color {
-    final brightness = Theme.of(this).brightness;
-    return brightness == Brightness.dark ? ThemeColors.dark : ThemeColors.light;
-  }
+  ThemeColors get color =>
+      Theme.of(this).extension<ThemeColorsData>()?.colors ??
+      (Theme.of(this).brightness == Brightness.dark
+          ? ThemeColors.dark
+          : ThemeColors.light);
 }

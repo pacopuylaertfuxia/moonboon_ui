@@ -141,7 +141,7 @@ class _SetupProgressIndicatorState extends State<SetupProgressIndicator>
                     painter: _ProgressRingPainter(
                       progress: 1.0,
                       strokeWidth: 14,
-                      color: context.color.surfaceSecondary,
+                      color: context.color.surfaceQuaternary,
                     ),
                   ),
                   CustomPaint(
@@ -149,7 +149,7 @@ class _SetupProgressIndicatorState extends State<SetupProgressIndicator>
                     painter: _ProgressRingPainter(
                       progress: progress,
                       strokeWidth: 14,
-                      color: context.color.surfaceTertiary,
+                      color: context.color.brandPrimary,
                     ),
                   ),
                   ConstrainedBox(
@@ -168,20 +168,14 @@ class _SetupProgressIndicatorState extends State<SetupProgressIndicator>
               children: [
                 Text(
                   'Progress:',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    height: 24 / 16,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: context.color.brandPrimary,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   '$percent%',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    height: 28 / 18,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: context.color.textSecondary,
                   ),
                 ),
@@ -190,10 +184,7 @@ class _SetupProgressIndicatorState extends State<SetupProgressIndicator>
             const SizedBox(height: 8),
             TypewriterCyclingText(
               messages: _babyMessages,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w400,
-                height: 28 / 18,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: context.color.textTertiary,
               ),
             ),

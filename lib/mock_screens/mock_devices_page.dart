@@ -6,7 +6,6 @@ import '../common/label_button.dart';
 import '../common/label_row.dart';
 import '../common/modal_sheet.dart';
 import '../common/mock_bottom_nav.dart';
-import '../setup_flow/component/noise_detection_body.dart';
 import '../common/section_divider.dart';
 import '../common/toggle_switch.dart';
 import '../setup_flow/component/noise_detection_body.dart';
@@ -124,18 +123,49 @@ class _MockDevicesPageState extends State<MockDevicesPage> {
   }
 
   void _showModeSheet() {
-    ModalSheet.show(
+    bool showHeader = false;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
       context: context,
-      hasPadding: false,
-      duration: Duration.zero,
-      background: ModalSheetBackground.cream,
-      child: NoiseDetectionBody(
-        level: _selectedMode,
-        onlyBabyCries: _onlyBabyCries,
-        onLevelSelected: (level) => setState(() => _selectedMode = level),
-        onOnlyBabyCriesChanged: (v) => setState(() => _onlyBabyCries = v),
-        onContinue: () => Navigator.of(context).pop(),
-        continueLabel: 'Done',
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      barrierColor: isDark
+          ? Colors.black.withValues(alpha: 0.75)
+          : Colors.black.withValues(alpha: 0.38),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ModeSelectionVariantToggle(
+              showHeader: showHeader,
+              onChanged: (v) => setSheetState(() => showHeader = v),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
+              child: ModalSheet(
+                hasPadding: false,
+                duration: Duration.zero,
+                background: ModalSheetBackground.cream,
+                child: NoiseDetectionBody(
+                  level: _selectedMode,
+                  onlyBabyCries: _onlyBabyCries,
+                  title: showHeader ? 'Mode selection' : null,
+                  subtitle: showHeader
+                      ? 'Choose how sensitive the monitor should be to sounds.'
+                      : null,
+                  onLevelSelected: (level) {
+                    setState(() => _selectedMode = level);
+                    Navigator.of(ctx).pop();
+                  },
+                  onOnlyBabyCriesChanged: (v) => setState(() => _onlyBabyCries = v),
+                  onContinue: () => Navigator.of(ctx).pop(),
+                  continueLabel: 'Done',
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -159,7 +189,7 @@ class _MockDevicesPageState extends State<MockDevicesPage> {
               slivers: [
                 SliverToBoxAdapter(child: _buildHeader()),
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
                       _MotorCard(
@@ -169,7 +199,7 @@ class _MockDevicesPageState extends State<MockDevicesPage> {
                             : () => setState(() => _motorState = _MotorState.ready),
                         onMore: _showMotorContextMenu,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _MonitorCard(
                         modeLabel: _selectedMode.modeLabel,
                         onModeChevron: _showModeSheet,
@@ -190,9 +220,14 @@ class _MockDevicesPageState extends State<MockDevicesPage> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 20, 16),
+      padding: const EdgeInsets.fromLTRB(12, 20, 20, 16),
       child: Row(
         children: [
+          _CircleIconBtn(
+            onTap: () => Navigator.of(context).pop(),
+            child: Icon(Icons.arrow_back_ios_new, size: 16, color: context.color.textPrimary),
+          ),
+          const SizedBox(width: 8),
           Text(
             'Devices',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -280,29 +315,14 @@ class _ContextMenuOverlayState extends State<_ContextMenuOverlay>
                   minWidth: MediaQuery.of(context).size.width - 32,
                 ),
                 child: Material(
-                  color: Colors.transparent,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: context.color.surfacePrimary,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: context.color.overlayLevel1,
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                          spreadRadius: -4,
-                        ),
-                        BoxShadow(
-                          color: context.color.overlayLevel1.withValues(alpha: 0.5),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: widget.child,
-                    ),
+                  color: context.color.surfacePrimary,
+                  surfaceTintColor: Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  elevation: 4,
+                  shadowColor: context.color.overlayLevel1,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: widget.child,
                   ),
                 ),
               ),
@@ -423,84 +443,107 @@ class _MotorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isRunning = state == _MotorState.running;
-    final cardColor = context.color.surfacePrimary;
+    final c = context.color;
+    final cardColor = c.surfacePrimary;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: ColoredBox(
-        color: cardColor,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              height: isRunning ? 268 : 220,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    'assets/images/motor_lifestyle.png',
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
-                  ),
-                  Positioned(
-                    bottom: 0, left: 0, right: 0, height: 130,
-                    child: _cardGradient(cardColor),
-                  ),
-                  Positioned(
-                    top: 14, right: 14,
-                    child: _DotsBtn(onTap: onMore),
-                  ),
-                  if (isRunning)
-                    const Positioned(
-                      left: 20, right: 20, bottom: 16,
-                      child: Row(
-                        children: [
-                          _StatChip(label: 'Ends', value: '19:34'),
-                          SizedBox(width: 8),
-                          _StatChip(label: 'Ends in', value: '1:58'),
-                          SizedBox(width: 8),
-                          _StatChip(label: 'Tempo', value: 'Medium'),
-                        ],
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            // Matches Figma: 0px 2px 32px rgba(0,0,0,0.06)
+            color: Colors.black.withValues(alpha: 0.06),
+            offset: const Offset(0, 2),
+            blurRadius: 32,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: ColoredBox(
+          color: cardColor,
+          child: SizedBox(
+            height: 285,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Full-bleed image
+                Image.asset(
+                  'assets/images/motor_nobg.png',
+                  fit: BoxFit.cover,
+                ),
+                // Gradient: transparent → surfacePrimary (73.1% stop)
+                Positioned(
+                  left: 0, right: 0, bottom: 0,
+                  height: 162,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, cardColor, cardColor],
+                        stops: const [0.0, 0.731, 1.0],
                       ),
                     ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                ),
+                // Stat chips when running (above info row)
+                if (isRunning)
+                  const Positioned(
+                    left: 20, right: 20, bottom: 80,
+                    child: Row(
                       children: [
-                        Text(
-                          isRunning ? 'Running' : 'Ready',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: context.color.brandSecondary,
-                            letterSpacing: 0,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Motorino',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: context.color.textPrimary,
-                          ),
-                        ),
+                        _StatChip(label: 'Ends', value: '19:34'),
+                        SizedBox(width: 8),
+                        _StatChip(label: 'Ends in', value: '1:58'),
+                        SizedBox(width: 8),
+                        _StatChip(label: 'Tempo', value: 'Medium'),
                       ],
                     ),
                   ),
-                  _ActionPill(
-                    label: isRunning ? 'Stop program' : 'Start program',
-                    onTap: onAction,
-                    showChevron: !isRunning,
-                    filled: isRunning,
+                // Info row overlaid at bottom (top: 217px = bottom: ~20px)
+                Positioned(
+                  left: 20, right: 20, bottom: 20,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isRunning ? 'Running' : 'Ready',
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: c.brandPrimary,
+                                letterSpacing: 0,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Motorino',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                color: c.brandSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _ActionPill(
+                        label: isRunning ? 'Stop program' : 'Start program',
+                        onTap: onAction,
+                        showChevron: !isRunning,
+                        filled: isRunning,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                // Dots button — top: 14, right: 16
+                Positioned(
+                  top: 14, right: 16,
+                  child: _DotsBtn(onTap: onMore),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -522,70 +565,91 @@ class _MonitorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardColor = context.color.surfacePrimary;
+    final c = context.color;
+    final cardColor = c.surfacePrimary;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: ColoredBox(
-        color: cardColor,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              height: 220,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    'assets/images/monitor_lifestyle.png',
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
-                  ),
-                  Positioned(
-                    bottom: 0, left: 0, right: 0, height: 130,
-                    child: _cardGradient(cardColor),
-                  ),
-                  Positioned(
-                    top: 14, right: 14,
-                    child: _DotsBtn(onTap: onMore),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Connected',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: context.color.feedbackSuccess,
-                            letterSpacing: 0,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Baboonies',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: context.color.textPrimary,
-                          ),
-                        ),
-                      ],
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            offset: const Offset(0, 2),
+            blurRadius: 32,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: ColoredBox(
+          color: cardColor,
+          child: SizedBox(
+            height: 285,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Full-bleed image
+                Image.asset(
+                  'assets/images/monitor_nobg.png',
+                  fit: BoxFit.cover,
+                ),
+                // Gradient: transparent → surfacePrimary (73.1% stop)
+                Positioned(
+                  left: 0, right: 0, bottom: 0,
+                  height: 162,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, cardColor, cardColor],
+                        stops: const [0.0, 0.731, 1.0],
+                      ),
                     ),
                   ),
-                  _ActionPill(
-                    label: modeLabel,
-                    onTap: onModeChevron,
-                    showChevron: true,
+                ),
+                // Info row overlaid at bottom
+                Positioned(
+                  left: 20, right: 20, bottom: 20,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Connected',
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: c.brandPrimary,
+                                letterSpacing: 0,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Baboonies',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                color: c.brandSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _ActionPill(
+                        label: modeLabel,
+                        onTap: onModeChevron,
+                        showChevron: true,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                // Dots button — top: 14, right: 16
+                Positioned(
+                  top: 14, right: 16,
+                  child: _DotsBtn(onTap: onMore),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -621,7 +685,7 @@ class _ProgramSheetState extends State<_ProgramSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -691,51 +755,54 @@ class _ProgramItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.color;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: selected ? c.surfacePrimary : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: c.borderNormal,
-            width: selected ? 2 : 1,
+    final borderRadius = BorderRadius.circular(16);
+    return Material(
+      color: selected ? c.surfacePrimary : Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: borderRadius,
+        side: BorderSide(color: c.borderNormal, width: selected ? 2 : 1),
+      ),
+      elevation: selected ? 2 : 0,
+      shadowColor: c.overlayLevel1,
+      child: InkWell(
+        borderRadius: borderRadius,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            spacing: 12,
+            children: [
+              Container(
+                width: 48, height: 48,
+                decoration: BoxDecoration(
+                  color: c.surfaceTertiary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 20, color: c.textSecondary),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: c.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: c.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ),
-        child: Row(
-          spacing: 12,
-          children: [
-            Container(
-              width: 48, height: 48,
-              decoration: BoxDecoration(
-                color: c.surfaceTertiary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, size: 20, color: c.textSecondary),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: c.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: c.textTertiary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -765,7 +832,7 @@ class _ActionPill extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        padding: const EdgeInsets.fromLTRB(12, 7, 8, 7),
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(100),
@@ -781,7 +848,7 @@ class _ActionPill extends StatelessWidget {
               const SizedBox(width: 4),
               SvgPicture.asset(
                 'assets/icons/utility/chevron-selector-vertical.svg',
-                width: 16, height: 16,
+                width: 18, height: 18,
                 colorFilter: ColorFilter.mode(fg, BlendMode.srcIn),
               ),
             ],
@@ -814,7 +881,6 @@ class _StatChip extends StatelessWidget {
               label,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: context.color.textTertiary,
-                fontSize: 11,
               ),
             ),
             const SizedBox(height: 2),
@@ -839,13 +905,11 @@ class _DotsBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => onTap(context),
-      child: Container(
+      child: SizedBox(
         width: 32, height: 32,
-        decoration: BoxDecoration(
-          color: context.color.surfacePrimary.withValues(alpha: 0.7),
-          shape: BoxShape.circle,
+        child: Center(
+          child: Icon(Icons.more_horiz, size: 22, color: context.color.textPrimary),
         ),
-        child: Icon(Icons.more_horiz, size: 18, color: context.color.textPrimary),
       ),
     );
   }
@@ -872,19 +936,3 @@ class _CircleIconBtn extends StatelessWidget {
   }
 }
 
-// ── Gradient helper ────────────────────────────────────────────────────────────
-
-Widget _cardGradient(Color cardColor) => DecoratedBox(
-  decoration: BoxDecoration(
-    gradient: LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-        cardColor.withValues(alpha: 0),
-        cardColor.withValues(alpha: 0.9),
-        cardColor,
-      ],
-      stops: const [0.0, 0.6, 1.0],
-    ),
-  ),
-);
