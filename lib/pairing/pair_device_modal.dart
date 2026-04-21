@@ -114,7 +114,7 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
 
   String _bluetoothVideo(bool isDark) => switch (widget.motorType) {
     MotorType.basic   => isDark ? 'assets/videos/motor_basic_turn_on_bluetooth_dark.mov' : 'assets/videos/motor_basic_turn_on_bluetooth.mov',
-    MotorType.premium => isDark ? 'assets/videos/motor_turn_on_bluetooth_dark.mov' : 'assets/videos/motor_turn_on_bluetooth.mov',
+    MotorType.premium => isDark ? 'assets/videos/motor_premium_turn_on_bluetooth_dark.mov' : 'assets/videos/motor_premium_turn_on_bluetooth_light.mov',
   };
 
   // ── Step builders ─────────────────────────────────────────────────────────
@@ -161,7 +161,7 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
       onPrimaryButtonPressed: () => context.read<MockMotorCubit>().nextStep(),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
-        child: MotorVideoAnimation(assetPath: _bluetoothVideo(isDark)),
+        child: MotorVideoAnimation(assetPath: _bluetoothVideo(isDark), loop: false),
       ),
     );
   }
@@ -214,7 +214,7 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
           const SizedBox(height: 24),
           Text(
             context.text.motor_pairing_activating,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: context.color.textSecondary),
+            style: context.textStyle.bodyMedium.copyWith(color: context.color.textSecondary),
             textAlign: TextAlign.center,
           ),
         ],

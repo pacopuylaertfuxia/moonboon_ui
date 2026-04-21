@@ -53,7 +53,7 @@ class _LauncherPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: context.color.surfacePrimary,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
@@ -69,14 +69,12 @@ class _LauncherPage extends StatelessWidget {
                     children: [
                       Text(
                         'Moonboon',
-                        style: Theme.of(context).textTheme.headlineMedium,
+                        style: context.textStyle.headlineMedium.withColor(context.color.textPrimary),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         'Setup Flows',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                        ),
+                        style: context.textStyle.bodyMedium.withColor(context.color.textSecondary),
                       ),
                     ],
                   ),
@@ -87,13 +85,13 @@ class _LauncherPage extends StatelessWidget {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                        color: context.color.textPrimary.withValues(alpha: 0.08),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
                         size: 20,
-                        color: Theme.of(context).colorScheme.onSurface,
+                        color: context.color.textPrimary,
                       ),
                     ),
                   ),
@@ -213,7 +211,7 @@ class _FlowTile extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+          color: context.color.surfaceTertiary.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(24),
         ),
         child: Row(
@@ -224,14 +222,12 @@ class _FlowTile extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: context.textStyle.titleLarge.withColor(context.color.textPrimary),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45),
-                    ),
+                    style: context.textStyle.bodySmall.withColor(context.color.textTertiary),
                   ),
                 ],
               ),
@@ -239,7 +235,7 @@ class _FlowTile extends StatelessWidget {
             Icon(
               Icons.arrow_forward_ios_rounded,
               size: 16,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+              color: context.color.textQuaternary,
             ),
           ],
         ),
