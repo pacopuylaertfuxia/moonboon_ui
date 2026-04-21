@@ -130,6 +130,32 @@ class _LauncherPage extends StatelessWidget {
   }
 
   void _openMotorFlow(BuildContext context, MotorType motorType) {
+    _openSetupSheet(
+      context,
+      child: (ctx) => BlocProvider(
+        create: (_) => MockMotorCubit(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height - 60),
+          child: PairDeviceModal(motorType: motorType),
+        ),
+      ),
+    );
+  }
+
+  void _openMonitorFlow(BuildContext context) {
+    _openSetupSheet(
+      context,
+      child: (ctx) => BlocProvider(
+        create: (_) => MockMonitorCubit()..checkCurrentUser(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height - 60),
+          child: const MonitorProvisioningPage(),
+        ),
+      ),
+    );
+  }
+
+  void _openSetupSheet(BuildContext context, {required Widget Function(BuildContext) child}) {
     final br = DeviceRadius.instance.bottomSheetRadius;
     showModalBottomSheet(
       context: context,
@@ -162,58 +188,10 @@ class _LauncherPage extends StatelessWidget {
                     ),
               color: getModalSheetBackgroundColor(ctx, ModalSheetBackground.white),
             ),
-            child: BlocProvider(
-              create: (_) => MockMotorCubit(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(ctx).size.height - 60,
-                ),
-                child: PairDeviceModal(motorType: motorType),
-              ),
-            ),
+            child: child(ctx),
           ),
         );
       },
-    );
-  }
-
-  void _openMonitorFlow(BuildContext context) {
-    final br = DeviceRadius.instance.bottomSheetRadius;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.38),
-      builder: (ctx) => AnimatedPadding(
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeOutCubic,
-        padding: EdgeInsets.only(
-          left: 6,
-          right: 6,
-          top: 6,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom > 0 ? 0 : 6,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(32),
-            topRight: const Radius.circular(32),
-            bottomLeft: Radius.circular(br),
-            bottomRight: Radius.circular(br),
-          ),
-          child: ColoredBox(
-            color: getModalSheetBackgroundColor(ctx, ModalSheetBackground.white),
-            child: BlocProvider(
-              create: (_) => MockMonitorCubit(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(ctx).size.height - 60,
-                ),
-                child: const MonitorProvisioningPage(),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
