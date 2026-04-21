@@ -62,17 +62,25 @@ class SetupTextField extends StatefulWidget {
 class _SetupTextFieldState extends State<SetupTextField> {
   bool _isValid = false;
   bool _isObscured = false;
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     widget.controller.addListener(_onControllerChanged);
     _isObscured = widget.isObscured;
+    _isValid = widget.validationRule(widget.controller.textController.text);
+    if (widget.withInputField) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focusNode.requestFocus();
+      });
+    }
   }
 
   @override
   void dispose() {
     widget.controller.removeListener(_onControllerChanged);
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -97,13 +105,14 @@ class _SetupTextFieldState extends State<SetupTextField> {
           TextField(
             enabled: !isLoading && !isReadOnly,
             readOnly: isReadOnly,
+            focusNode: _focusNode,
             controller: widget.controller.textController,
             obscureText: _isObscured,
             textCapitalization: widget.textCapitalization,
             decoration: InputDecoration(
               hintText: widget.hintText,
               fillColor: isDarkMode
-                  ? context.color.surfacePrimary
+                  ? context.color.surfaceSecondary
                   : context.color.surfaceSecondary,
               filled: true,
               border: OutlineInputBorder(
@@ -116,7 +125,10 @@ class _SetupTextFieldState extends State<SetupTextField> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(100),
-                borderSide: BorderSide.none,
+                borderSide: BorderSide(
+                  color: context.color.borderNormal,
+                  width: 1.5,
+                ),
               ),
               hintStyle: TextStyle(color: context.color.textQuaternary),
               suffixIcon: widget.isObscured

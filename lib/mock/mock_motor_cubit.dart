@@ -11,9 +11,7 @@ class MockMotorCubit extends Cubit<PairDeviceState> {
     final s = state;
     if (s is PairDeviceStatePowerUp) emit(PairDeviceStateTurnOn());
     else if (s is PairDeviceStateTurnOn) emit(PairDeviceStateTurnOnBluetooth());
-    else if (s is PairDeviceStateTurnOnBluetooth) emit(PairDeviceStateBluetoothPermission());
-    else if (s is PairDeviceStateBluetoothPermission) emit(PairDeviceStateEnterPairingMode());
-    else if (s is PairDeviceStateEnterPairingMode) {
+    else if (s is PairDeviceStateTurnOnBluetooth) {
       emit(PairDeviceStateScanningStep());
       _delay(2500, () => emit(PairDeviceStateFound(_mockDevices.take(1).toList())));
     }
@@ -23,17 +21,24 @@ class MockMotorCubit extends Cubit<PairDeviceState> {
     final s = state;
     if (s is PairDeviceStateTurnOn) emit(PairDeviceStatePowerUp());
     else if (s is PairDeviceStateTurnOnBluetooth) emit(PairDeviceStateTurnOn());
-    else if (s is PairDeviceStateBluetoothPermission) emit(PairDeviceStateTurnOnBluetooth());
-    else if (s is PairDeviceStateBluetoothPermissionDenied) emit(PairDeviceStateTurnOnBluetooth());
-    else if (s is PairDeviceStateEnterPairingMode) emit(PairDeviceStateBluetoothPermission());
     else if (s is PairDeviceStateScanningStep || s is PairDeviceStateFound) {
-      emit(PairDeviceStateEnterPairingMode());
+      emit(PairDeviceStateTurnOnBluetooth());
     }
   }
 
-  void connectToDevice(String deviceName) {
-    emit(PairDeviceStateLoading());
-    _delay(1500, () => emit(PairDeviceStatePaired()));
+  void connectToDevice(String deviceName, {String friendlyName = ''}) {
+    final name = friendlyName.isEmpty ? deviceName : friendlyName;
+    const steps = [
+      (0,    0.08),
+      (900,  0.28),
+      (1800, 0.50),
+      (2700, 0.72),
+      (3600, 1.00),
+    ];
+    for (final (delayMs, progress) in steps) {
+      _delay(delayMs, () => emit(PairDeviceStateActivating(name, progress)));
+    }
+    _delay(4500, () => emit(PairDeviceStatePaired()));
   }
 
   void goToGetNotifiedStep() => emit(PairDeviceStateGetNotified());

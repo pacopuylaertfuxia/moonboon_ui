@@ -8,6 +8,8 @@ final class MonitorInitial extends MonitorState {}
 
 final class MonitorChargeStep extends MonitorState {}
 
+final class MonitorSearchingStep extends MonitorState {}
+
 final class MonitorBluetoothPermissionDeniedStep extends MonitorState {}
 
 final class MonitorStateNotSignedIn extends MonitorState {}

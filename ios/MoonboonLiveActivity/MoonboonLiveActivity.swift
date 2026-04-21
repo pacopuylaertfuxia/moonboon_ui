@@ -12,6 +12,7 @@ struct MonitorLiveActivityWidget: Widget {
             case 8:  V8LockScreen(attrs: context.attributes, state: context.state)
             case 9:  V9LockScreen(attrs: context.attributes, state: context.state)
             case 10: V10LockScreen(attrs: context.attributes, state: context.state)
+            case 11: V11LockScreen(attrs: context.attributes, state: context.state)
             default: MonitorLockScreen(attrs: context.attributes, state: context.state)
             }
         } dynamicIsland: { context in
@@ -26,6 +27,8 @@ struct MonitorLiveActivityWidget: Widget {
                         V9ExpandedLeading(attrs: context.attributes, state: context.state)
                     } else if v == 10 {
                         V10ExpandedLeading(attrs: context.attributes, state: context.state)
+                    } else if v == 11 {
+                        V11ExpandedLeading(attrs: context.attributes, state: context.state)
                     } else {
                         MonitorExpandedLeading(attrs: context.attributes, state: context.state)
                     }
@@ -44,6 +47,8 @@ struct MonitorLiveActivityWidget: Widget {
                         V9ExpandedTrailing(state: context.state)
                     } else if v == 10 {
                         V10ExpandedTrailing(state: context.state)
+                    } else if v == 11 {
+                        V11ExpandedTrailing(state: context.state)
                     } else {
                         MonitorExpandedTrailing(state: context.state)
                     }
@@ -57,6 +62,8 @@ struct MonitorLiveActivityWidget: Widget {
                     V9CompactLeading(state: context.state)
                 } else if v == 10 {
                     V10CompactLeading(state: context.state)
+                } else if v == 11 {
+                    V11CompactLeading(state: context.state)
                 } else {
                     MonitorCompactLeading(state: context.state)
                 }
@@ -69,6 +76,8 @@ struct MonitorLiveActivityWidget: Widget {
                     V9CompactTrailing(state: context.state)
                 } else if v == 10 {
                     V10CompactTrailing(state: context.state)
+                } else if v == 11 {
+                    V11CompactTrailing(state: context.state)
                 } else {
                     MonitorCompactTrailing(state: context.state)
                 }
@@ -81,6 +90,8 @@ struct MonitorLiveActivityWidget: Widget {
                     V9Minimal(state: context.state)
                 } else if v == 10 {
                     V10Minimal(state: context.state)
+                } else if v == 11 {
+                    V11Minimal(state: context.state)
                 } else {
                     MonitorMinimal(state: context.state)
                 }

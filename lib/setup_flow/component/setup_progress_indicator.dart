@@ -51,11 +51,13 @@ double _stepProgress(FinalConfigurationStep step) => switch (step) {
 class SetupProgressIndicator extends StatefulWidget {
   final FinalConfigurationStep step;
   final bool isComplete;
+  final String? imageAsset;
 
   const SetupProgressIndicator({
     super.key,
     required this.step,
     this.isComplete = false,
+    this.imageAsset,
   });
 
   @override
@@ -155,7 +157,8 @@ class _SetupProgressIndicatorState extends State<SetupProgressIndicator>
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxHeight: 190, maxWidth: 190),
                     child: Image.asset(
-                      'assets/illustrations/monitor/illustration_monitor_front.png',
+                      widget.imageAsset ??
+                          'assets/illustrations/monitor/illustration_monitor_front.png',
                       fit: BoxFit.contain,
                     ),
                   ),

@@ -36,6 +36,7 @@
 		CC0000000000000000000010 /* Variant8DIMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000011 /* Variant8DIMonitor.swift */; };
 		CC0000000000000000000012 /* Variant9WarmMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000013 /* Variant9WarmMonitor.swift */; };
 		CC0000000000000000000014 /* Variant10Monitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000015 /* Variant10Monitor.swift */; };
+		CC000000000000000000001E /* Variant11DesignLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC000000000000000000001F /* Variant11DesignLock.swift */; };
 		CC0000000000000000000003 /* MonitorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000004 /* MonitorWidget.swift */; };
 		CC0000000000000000000005 /* MotorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000006 /* MotorWidget.swift */; };
 		CC0000000000000000000007 /* MotorActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000008 /* MotorActivityAttributes.swift */; };
@@ -139,6 +140,7 @@
 		CC0000000000000000000011 /* Variant8DIMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Variant8DIMonitor.swift; sourceTree = "<group>"; };
 		CC0000000000000000000013 /* Variant9WarmMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Variant9WarmMonitor.swift; sourceTree = "<group>"; };
 		CC0000000000000000000015 /* Variant10Monitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Variant10Monitor.swift; sourceTree = "<group>"; };
+		CC000000000000000000001F /* Variant11DesignLock.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Variant11DesignLock.swift; sourceTree = "<group>"; };
 		CC0000000000000000000004 /* MonitorWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MonitorWidget.swift; sourceTree = "<group>"; };
 		CC0000000000000000000006 /* MotorWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MotorWidget.swift; sourceTree = "<group>"; };
 		CC0000000000000000000008 /* MotorActivityAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MotorActivityAttributes.swift; sourceTree = "<group>"; };
@@ -213,6 +215,7 @@
 				CC0000000000000000000011 /* Variant8DIMonitor.swift */,
 				CC0000000000000000000013 /* Variant9WarmMonitor.swift */,
 				CC0000000000000000000015 /* Variant10Monitor.swift */,
+				CC000000000000000000001F /* Variant11DesignLock.swift */,
 				CC0000000000000000000004 /* MonitorWidget.swift */,
 				CC0000000000000000000006 /* MotorWidget.swift */,
 			);
@@ -579,6 +582,7 @@
 				CC0000000000000000000010 /* Variant8DIMonitor.swift in Sources */,
 				CC0000000000000000000012 /* Variant9WarmMonitor.swift in Sources */,
 				CC0000000000000000000014 /* Variant10Monitor.swift in Sources */,
+				CC000000000000000000001E /* Variant11DesignLock.swift in Sources */,
 				CC0000000000000000000003 /* MonitorWidget.swift in Sources */,
 				CC0000000000000000000005 /* MotorWidget.swift in Sources */,
 				CC0000000000000000000007 /* MotorActivityAttributes.swift in Sources */,

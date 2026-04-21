@@ -53,32 +53,32 @@ class ThemeColors {
     required this.overlayNavButton,
   });
 
-  // Light: #F5F3F1 bg  |  Dark: #0F0D0B bg
+  // Light — matches production moonboon_app ThemeColors.light exactly
   static const ThemeColors light = ThemeColors(
-    brandPrimary:      Color(0xFFB59E85), // clay — both modes
+    brandPrimary:      Color(0xFFB59E85), // clay
     brandSecondary:    Color(0xFF70695F), // olive
     brandTertiary:     Color(0xFFE5D5C5), // mutedApricot
-    textPrimary:       Color(0xFF1A1008),
-    textSecondary:     Color(0xFF464545),
-    textTertiary:      Color(0xFF645D54),
-    textQuaternary:    Color(0xFFB59E85),
-    textInverse:       Color(0xFFF5F3F1),
+    textPrimary:       Color(0xFF010101), // black
+    textSecondary:     Color(0xFF464545), // obsadianGrey
+    textTertiary:      Color(0xFF70695F), // olive
+    textQuaternary:    Color(0xFFB59E85), // clay
+    textInverse:       Color(0xFFFFFEFD), // white
     textInactive:      Color(0xFFCDCDCD),
-    surfacePrimary:    Color(0xFFF5F3F1),
-    surfaceSecondary:  Color(0xFFF1E8DE),
-    surfaceTertiary:   Color(0xFFE5D5C5),
-    surfaceQuaternary: Color(0xFFDDD6CC),
-    surfaceSubdued:    Color(0xFFFAF8F6),
-    borderSubdued:     Color(0xFFF1E8DE),
-    borderNormal:      Color(0xFFDDD6CC),
-    borderStrong:      Color(0xFF645D54),
+    surfacePrimary:    Color(0xFFFFFEFD), // white
+    surfaceSecondary:  Color(0xFFF1E8DE), // creme
+    surfaceTertiary:   Color(0xFFE5D5C5), // mutedApricot
+    surfaceQuaternary: Color(0xFFE5D5C5), // mutedApricot (same as tertiary in light)
+    surfaceSubdued:    Color(0x80F5E6D3), // mutedApricot @50%
+    borderSubdued:     Color(0xFFF1E8DE), // creme
+    borderNormal:      Color(0xFFDDD6CC), // stone
+    borderStrong:      Color(0xFF70695F), // olive
     feedbackError:     Color(0xFFB94A48),
     feedbackSuccess:   Color(0xFF5E8A66),
     feedbackInfo:      Color(0xFF4A6A85),
-    overlayLevel1:     Color(0x33000000), // #000 @20%
-    overlayLevel2:     Color(0x80000000), // #000 @50%
-    overlayBrand:      Color(0x80B59E85), // clay @50%
-    overlayNavButton:  Color(0xE60F0D0B), // #0F0D0B @90%
+    overlayLevel1:     Color(0x33FFFFFF), // white @20%
+    overlayLevel2:     Color(0x80FFFFFF), // white @50%
+    overlayBrand:      Color(0x80E5D5C5), // mutedApricot @50%
+    overlayNavButton:  Color(0xE6F1E8DE), // creme @90%
   );
 
   static const ThemeColors dark = ThemeColors(

@@ -50,6 +50,7 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
     setupPlayer()
     setupPip()
     setupGesture()
+    setupAppLifecycleObservers()
 
     let ch = FlutterMethodChannel(
       name: "com.moonboon/video_player",
@@ -69,7 +70,7 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
       case "startPip":
         self?.startPip(result: result)
       case "stopPip":
-        self?.pipController?.stopPictureInPicture()
+        self?.stopPipAnimated()
         result(nil)
       default:
         result(FlutterMethodNotImplemented)
@@ -79,13 +80,10 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
 
   func view() -> UIView { hostView }
 
-  // MARK: Private — setup
+  // MARK: - Setup
 
   private func setupAudioSession() {
-    // PiP requires an active .playback session — set it here so PiP works
-    // even when no Live Activity is running (keep-alive not yet started).
-    try? AVAudioSession.sharedInstance().setCategory(
-      .playback, mode: .default, options: .mixWithOthers)
+    try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: .mixWithOthers)
     try? AVAudioSession.sharedInstance().setActive(true)
   }
 
@@ -94,11 +92,9 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
       print("[VideoPlayer] sample.mov not found in bundle")
       return
     }
-
     let item = AVPlayerItem(url: url)
     let player = AVPlayer(playerItem: item)
     player.actionAtItemEnd = .none
-
     NotificationCenter.default.addObserver(
       forName: .AVPlayerItemDidPlayToEndTime,
       object: item,
@@ -107,7 +103,6 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
       player?.seek(to: .zero)
       player?.play()
     }
-
     hostView.playerLayer.player = player
     self.player = player
     player.play()
@@ -124,7 +119,6 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
     if #available(iOS 14.2, *) {
       pip.canStartPictureInPictureAutomaticallyFromInline = false
     }
-
     self.pipController = pip
   }
 
@@ -134,19 +128,27 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
     hostView.isUserInteractionEnabled = true
   }
 
-  // MARK: Private — actions
+  private func setupAppLifecycleObservers() {
+    NotificationCenter.default.addObserver(
+      self, selector: #selector(appDidBecomeActive),
+      name: UIApplication.didBecomeActiveNotification, object: nil
+    )
+  }
+
+  @objc private func appDidBecomeActive() {
+    guard let pip = pipController, pip.isPictureInPictureActive else { return }
+    pip.stopPictureInPicture()
+  }
+
+  // MARK: - PiP actions
 
   private func startPip(result: @escaping FlutterResult) {
     guard let pip = pipController else {
       result(FlutterError(code: "PIP_UNAVAILABLE", message: "PiP not supported", details: nil))
       return
     }
-    if pip.isPictureInPictureActive {
-      result(nil)
-      return
-    }
-    // isPictureInPicturePossible may be false briefly after player init —
-    // wait up to 2s for it to become ready.
+    guard !pip.isPictureInPictureActive else { result(nil); return }
+
     if pip.isPictureInPicturePossible {
       pip.startPictureInPicture()
       result(nil)
@@ -155,18 +157,23 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
     }
   }
 
+  private func stopPipAnimated() {
+    guard let pip = pipController, pip.isPictureInPictureActive else { return }
+    pip.stopPictureInPicture()
+  }
+
   private func waitForPipReady(pip: AVPictureInPictureController, result: @escaping FlutterResult, attempts: Int = 0) {
     guard attempts < 10 else {
       result(FlutterError(code: "PIP_NOT_READY", message: "PiP not ready", details: nil))
       return
     }
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak pip] in
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self, weak pip] in
       guard let pip else { return }
       if pip.isPictureInPicturePossible {
         pip.startPictureInPicture()
         result(nil)
       } else {
-        self.waitForPipReady(pip: pip, result: result, attempts: attempts + 1)
+        self?.waitForPipReady(pip: pip, result: result, attempts: attempts + 1)
       }
     }
   }
@@ -191,6 +198,12 @@ extension NativeVideoPlayerView: AVPictureInPictureControllerDelegate {
   }
 
   func pictureInPictureControllerDidStopPictureInPicture(_ controller: AVPictureInPictureController) {
+    // Re-attach player — required for isPictureInPicturePossible on next attempt
+    hostView.playerLayer.player = player
+    if isPlaying { player?.play() }
+    if #available(iOS 14.2, *) {
+      controller.canStartPictureInPictureAutomaticallyFromInline = false
+    }
     channel?.invokeMethod("pipStateChanged", arguments: false)
   }
 
@@ -198,7 +211,7 @@ extension NativeVideoPlayerView: AVPictureInPictureControllerDelegate {
     _ controller: AVPictureInPictureController,
     restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
   ) {
-    // Called when user taps the PiP restore button — just restore the UI
+    hostView.playerLayer.player = player
     completionHandler(true)
   }
 }

@@ -16,6 +16,12 @@ final class PairDeviceStateScanningStep extends PairDeviceState {}
 
 final class PairDeviceStateLoading extends PairDeviceState {}
 
+final class PairDeviceStateActivating extends PairDeviceState {
+  final String deviceName;
+  final double progress;
+  PairDeviceStateActivating(this.deviceName, this.progress);
+}
+
 final class PairDeviceStateError extends PairDeviceState {
   final String message;
   PairDeviceStateError(this.message);

@@ -9,11 +9,13 @@ import 'mock_screens/mock_monitor_stream_page.dart';
 import 'mock_screens/mock_settings_page.dart';
 import 'mock_screens/mock_nap_track_page.dart';
 import 'mock_screens/mock_devices_page.dart';
+import 'mock_screens/mock_motor_details_page.dart';
+import 'mock_screens/mock_motor_stream_page.dart';
 import 'mock/mock_motor_cubit.dart';
+import 'pairing/component/motor_video_animation.dart';
 import 'pairing/motor_type.dart';
 import 'pairing/pair_device_modal.dart';
 import 'setup_flow/bloc/final_configuration_step.dart';
-import 'setup_flow/component/charging_animation.dart';
 import 'setup_flow/component/noise_detection_body.dart';
 import 'setup_flow/component/sound_monitoring_consent_body.dart';
 import 'setup_flow/component/streaming_consent_body.dart';
@@ -33,6 +35,7 @@ import 'live_activity/di_live_demo.dart';
 import 'live_activity/prototype_conversion_page.dart';
 import 'live_activity/warm_monitor_demo.dart';
 import 'live_activity/variant10_demo.dart';
+import 'live_activity/variant11_demo.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_colors.dart';
 
@@ -232,10 +235,18 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
                       _DemoTile(
                         number: '1',
                         title: 'Charge monitor step',
-                        subtitle: 'First step — USB-C cable animation + scanning text',
+                        subtitle: 'First step — power up video',
                         onTap: () => _show(context,
                           hasPadding: false,
                           child: const _WithStepper(step: 1, totalSteps: 5, child: _ChargingSheet())),
+                      ),
+                      _DemoTile(
+                        number: '1b',
+                        title: 'Searching for monitor',
+                        subtitle: 'Radar animation while scanning for Bluetooth device',
+                        onTap: () => _show(context,
+                          hasPadding: false,
+                          child: const _WithStepper(step: 2, totalSteps: 5, child: _SearchingSheet())),
                       ),
                       _DemoTile(
                         number: '2',
@@ -350,6 +361,15 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
                     title: 'Live Activities',
                     children: [
                       _DemoTile(
+                        number: '👶',
+                        title: 'Variant 11 — Lock Screen Pill',
+                        subtitle: 'New Figma design — moonboon wordmark · camera rings · waveform · baby face',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const Variant11Demo()),
+                        ),
+                      ),
+                      _DemoTile(
                         number: '🌙',
                         title: 'Variant 10',
                         subtitle: 'Figma-faithful — moon pill · [name] is Quiet/Crying · KeplerStd · warm lock screen',
@@ -442,6 +462,14 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
                     children: [
                       _DemoTile(
                         number: '→',
+                        title: 'Motor stream screen',
+                        subtitle: 'Timer · tempo · start/stop',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const MockMotorStreamPage()),
+                        ),
+                      ),
+                      _DemoTile(
+                        number: '→',
                         title: 'Basic — full pairing flow',
                         subtitle: 'Power up → Turn on → BT → Scan → Paired',
                         onTap: () => _openMotorFlow(context, MotorType.basic),
@@ -471,31 +499,46 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.38),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(6),
-        child: ClipRRect(
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(32),
-            topRight: const Radius.circular(32),
-            bottomLeft: Radius.circular(br),
-            bottomRight: Radius.circular(br),
+      builder: (ctx) {
+        final keyboardUp = MediaQuery.of(ctx).viewInsets.bottom > 0;
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+          padding: EdgeInsets.only(
+            left: keyboardUp ? 0 : 6,
+            right: keyboardUp ? 0 : 6,
+            top: keyboardUp ? 0 : 6,
+            bottom: keyboardUp ? 0 : 6,
           ),
-          child: BlocProvider(
-            create: (_) => MockMonitorCubit()..checkCurrentUser(),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(ctx).size.height - 60,
-              ),
-              child: ColoredBox(
-                color: getModalSheetBackgroundColor(ctx, ModalSheetBackground.white),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeInOut,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: keyboardUp
+                  ? const BorderRadius.vertical(top: Radius.circular(32))
+                  : BorderRadius.only(
+                      topLeft: const Radius.circular(32),
+                      topRight: const Radius.circular(32),
+                      bottomLeft: Radius.circular(br),
+                      bottomRight: Radius.circular(br),
+                    ),
+              color: getModalSheetBackgroundColor(ctx, ModalSheetBackground.white),
+            ),
+            child: BlocProvider(
+              create: (_) => MockMonitorCubit()..checkCurrentUser(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(ctx).size.height - 60,
+                ),
                 child: MonitorProvisioningPage(
                   onMonitorAdded: () => Navigator.of(ctx).pop(),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -506,34 +549,44 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.38),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(6),
-        child: ClipRRect(
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(32),
-            topRight: const Radius.circular(32),
-            bottomLeft: Radius.circular(br),
-            bottomRight: Radius.circular(br),
+      builder: (ctx) {
+        final keyboardUp = MediaQuery.of(ctx).viewInsets.bottom > 0;
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+          padding: EdgeInsets.only(
+            left: keyboardUp ? 0 : 6,
+            right: keyboardUp ? 0 : 6,
+            top: keyboardUp ? 0 : 6,
+            bottom: keyboardUp ? 0 : 6,
           ),
-          child: BlocProvider(
-            create: (_) => MockMotorCubit(),
-            child: AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              alignment: Alignment.topCenter,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 320),
+            curve: Curves.easeOutCubic,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: keyboardUp
+                  ? const BorderRadius.vertical(top: Radius.circular(32))
+                  : BorderRadius.only(
+                      topLeft: const Radius.circular(32),
+                      topRight: const Radius.circular(32),
+                      bottomLeft: Radius.circular(br),
+                      bottomRight: Radius.circular(br),
+                    ),
+              color: getModalSheetBackgroundColor(ctx, ModalSheetBackground.white),
+            ),
+            child: BlocProvider(
+              create: (_) => MockMotorCubit(),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxHeight: MediaQuery.of(ctx).size.height - 60,
                 ),
-                child: ColoredBox(
-                  color: getModalSheetBackgroundColor(ctx, ModalSheetBackground.white),
-                  child: PairDeviceModal(motorType: motorType),
-                ),
+                child: PairDeviceModal(motorType: motorType),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -713,18 +766,23 @@ class _ChargingSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return PairDeviceBody(
       title: 'Plug in your monitor',
-      asset: 'assets/illustrations/monitor/illustration_monitor_front.png',
       description: 'Keep the monitor plugged in throughout the entire setup process.',
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const ChargingAnimation(),
-        const SizedBox(height: 24),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text('Looking for your monitor…', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: context.color.textTertiary)),
-          const SizedBox(width: 16),
-          SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: context.color.textTertiary.withValues(alpha: 0.5))),
-        ]),
-        const SizedBox(height: 24),
-      ]),
+      primaryButtonLabel: 'Next',
+      onPrimaryButtonPressed: () {},
+      child: const MotorVideoAnimation(
+        assetPath: 'assets/videos/monitor_power_up.mov',
+      ),
+    );
+  }
+}
+
+class _SearchingSheet extends StatelessWidget {
+  const _SearchingSheet();
+  @override
+  Widget build(BuildContext context) {
+    return PairDeviceBody(
+      title: 'Searching...',
+      child: const WifiRadarAnimation(size: 270),
     );
   }
 }

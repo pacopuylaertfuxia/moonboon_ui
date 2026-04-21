@@ -47,6 +47,10 @@ class MockMonitorCubit extends Cubit<MonitorState> {
 
   void startSetupFlow() {
     emit(MonitorChargeStep());
+  }
+
+  void goToSearching() {
+    emit(MonitorSearchingStep());
     _delay(2500, () {
       emit(MonitorFound(
         [_mockMonitor],

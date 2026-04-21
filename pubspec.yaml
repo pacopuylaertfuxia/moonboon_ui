@@ -37,6 +37,7 @@ dependencies:
   app_settings: ^5.1.1
   screen_corner_radius: ^3.0.0
   image_picker: ^1.1.2
+  video_player: ^2.9.2
 
 dev_dependencies:
   flutter_test:
@@ -65,6 +66,7 @@ flutter:
     - assets/icons/fullscreen/
     - assets/icons/feedback/
     - assets/icons/notification/
+    - assets/icons/tempo/
     - assets/illustrations/
     - assets/illustrations/connect/light/
     - assets/illustrations/connect/dark/
@@ -72,6 +74,7 @@ flutter:
     - assets/illustrations/connect_premium/dark/
     - assets/illustrations/system/light/
     - assets/illustrations/system/dark/
+    - assets/videos/
     - assets/images/
     - assets/icons/
     - assets/

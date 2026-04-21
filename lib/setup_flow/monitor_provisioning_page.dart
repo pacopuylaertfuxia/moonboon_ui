@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../common/button.dart';
 import '../common/fade_overlay.dart';
 import '../common/pair_device_body.dart';
+import '../common/setup_sheet_body.dart';
 import '../mock/mock_monitor_cubit.dart';
 import '../strings/app_strings.dart';
 import '../theme/theme_colors.dart';
@@ -45,6 +46,7 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
 
   int? _stepFor(MonitorState state) => switch (state) {
     MonitorChargeStep() => 1,
+    MonitorSearchingStep() => 2,
     MonitorFound() => 2,
     MonitorScanningWiFi() => 3,
     MonitorScanningWiFiResult() => 3,
@@ -57,38 +59,13 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
     _ => null,
   };
 
-  Widget _buildStepper(int currentStep, int totalSteps) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(totalSteps, (i) {
-        final step = i + 1;
-        final isCompleted = step < currentStep;
-        final isCurrent = step == currentStep;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 3),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            width: isCurrent ? 20 : 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: (isCurrent || isCompleted)
-                  ? context.color.surfaceTertiary
-                  : context.color.surfaceTertiary.withValues(alpha: 0.35),
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        );
-      }),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<MockMonitorCubit, MonitorState>(
       builder: (context, state) {
         final child = switch (state) {
           MonitorChargeStep() => _buildChargeMonitorStep(context),
+          MonitorSearchingStep() => _buildSearchingStep(context),
           MonitorFound s => _buildFound(context, s),
           MonitorAlreadyTaken() => _buildAlreadyTaken(context),
           MonitorWiFiPasswordInputError s => _buildWiFiPasswordInputStep(
@@ -123,31 +100,11 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
 
         final step = _stepFor(state);
         final isNoiseStep = state is MonitorNoiseDetectionStep;
-        return AnimatedSize(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          alignment: Alignment.topCenter,
-          child: ColoredBox(
-            color: isNoiseStep ? context.color.surfaceSecondary : Colors.transparent,
-            child: Stack(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(
-                  top: 32.0,
-                  bottom: step != null ? 52.0 : 0.0,
-                ),
-                child: child,
-              ),
-              if (step != null)
-                Positioned(
-                  bottom: 44,
-                  left: 0,
-                  right: 0,
-                  child: Center(child: _buildStepper(step, 5)),
-                ),
-            ],
-          ),
-          ),
+        return SetupSheetBody(
+          step: step,
+          totalSteps: 5,
+          backgroundColor: isNoiseStep ? context.color.surfaceSecondary : null,
+          child: child,
         );
       },
     );
@@ -203,20 +160,23 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
     _nameInputController.setLoading(isConnecting);
     _nameInputController.setText(friendlyName);
     _nameInputController.setReadOnly(isLaunchedToChangeWifi);
-    return PairDeviceBody(
-      key: const ValueKey('foundStepSingle'),
-      title: context.text.monitor_setup_found,
-      asset: 'assets/illustrations/monitor/illustration_monitor_front.png',
-      isLoading: isConnecting,
-      child: SetupTextField(
-        controller: _nameInputController,
-        validationRule: (name) => name.isNotEmpty,
-        hintText: context.text.monitor_pair_friendly_name_hint,
-        textCapitalization: TextCapitalization.sentences,
-        withInputField: !widget.isLaunchedToChangeWiFi,
-        onSubmitted: (name) {
-          context.read<MockMonitorCubit>().connectToDevice(device, name);
-        },
+    return SingleChildScrollView(
+      child: PairDeviceBody(
+        key: const ValueKey('foundStepSingle'),
+        title: context.text.monitor_setup_found,
+        asset: 'assets/illustrations/monitor/illustration_monitor_front.png',
+        isLoading: isConnecting,
+        child: SetupTextField(
+          controller: _nameInputController,
+          validationRule: (name) => name.isNotEmpty,
+          hintText: context.text.monitor_pair_friendly_name_hint,
+          textCapitalization: TextCapitalization.sentences,
+          withInputField: !widget.isLaunchedToChangeWiFi,
+          onSubmitted: (name) {
+            FocusScope.of(context).unfocus();
+            context.read<MockMonitorCubit>().connectToDevice(device, name);
+          },
+        ),
       ),
     );
   }
@@ -226,35 +186,19 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
       key: const ValueKey('chargeMonitorStep'),
       title: context.text.monitor_setup_charge_device,
       asset: 'assets/illustrations/monitor/illustration_monitor_front.png',
+      assetBottomPadding: 0,
       description: context.text.monitor_setup_charge_device_description,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const ChargingAnimation(),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                context.text.monitor_setup_looking_for_your_monitor,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: context.color.textTertiary.withValues(alpha: 0.8),
-                ),
-              ),
-              const SizedBox(width: 16),
-              SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: context.color.textTertiary.withValues(alpha: 0.5),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
+      primaryButtonLabel: context.text.next,
+      onPrimaryButtonPressed: () => context.read<MockMonitorCubit>().goToSearching(),
+      child: const ChargingAnimation(),
+    );
+  }
+
+  Widget _buildSearchingStep(BuildContext context) {
+    return PairDeviceBody(
+      key: const ValueKey('searchingStep'),
+      title: context.text.motor_pairing_looking,
+      child: const WifiRadarAnimation(size: 270),
     );
   }
 
@@ -346,26 +290,28 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
     String ssid, {
     bool previouslyFailed = false,
   }) {
-    return PairDeviceBody(
-      key: const ValueKey('wiFiPasswordInputStep'),
-      title: ssid,
-      description: previouslyFailed
-          ? context
-              .text
-              .monitor_pair_unable_to_connect_to_wifi_error_description
-          : null,
-      child: SetupTextField(
-        controller: _passwordInputController,
-        validationRule: (p) => p.length >= 8 && p.length <= 63,
-        hintText: context.text.monitor_setup_wi_fi_password,
-        isObscured: true,
-        onSubmitted: (password) async {
-          FocusScope.of(context).unfocus();
-          await Future.delayed(const Duration(milliseconds: 500));
-          if (context.mounted) {
-            context.read<MockMonitorCubit>().setWiFiCredentials(ssid, password);
-          }
-        },
+    return SingleChildScrollView(
+      child: PairDeviceBody(
+        key: const ValueKey('wiFiPasswordInputStep'),
+        title: ssid,
+        description: previouslyFailed
+            ? context
+                .text
+                .monitor_pair_unable_to_connect_to_wifi_error_description
+            : null,
+        child: SetupTextField(
+          controller: _passwordInputController,
+          validationRule: (p) => p.length >= 8 && p.length <= 63,
+          hintText: context.text.monitor_setup_wi_fi_password,
+          isObscured: true,
+          onSubmitted: (password) async {
+            FocusScope.of(context).unfocus();
+            await Future.delayed(const Duration(milliseconds: 500));
+            if (context.mounted) {
+              context.read<MockMonitorCubit>().setWiFiCredentials(ssid, password);
+            }
+          },
+        ),
       ),
     );
   }

@@ -18,7 +18,7 @@ double bottomSafeArea(BuildContext context) {
 TextStyle? getTitleStyle(BuildContext context) {
   return Theme.of(
     context,
-  ).textTheme.headlineSmall?.copyWith(color: context.color.textPrimary);
+  ).textTheme.headlineSmall?.copyWith(color: context.color.textSecondary);
 }
 
 TextStyle? getBodyStyle(BuildContext context) {
@@ -74,9 +74,11 @@ class PairDeviceBody extends StatelessWidget {
     final titleStyle = getTitleStyle(context);
     final bodyStyle = getBodyStyle(context);
 
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    final keyboardUp = keyboardHeight > 0;
     return Padding(
       padding: EdgeInsets.only(
-        bottom: withBottomPadding ? bottomSafeArea(context) : 0,
+        bottom: keyboardUp ? keyboardHeight : (withBottomPadding ? bottomSafeArea(context) : 0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -118,7 +120,7 @@ class PairDeviceBody extends StatelessWidget {
                   ),
                 )
               else
-                const SizedBox(height: 12),
+                const SizedBox(height: 32),
               if (title != null)
                 Padding(
                   padding: EdgeInsets.only(
@@ -150,21 +152,26 @@ class PairDeviceBody extends StatelessWidget {
             ],
           ),
           if (asset != null)
-            Padding(
-              padding: EdgeInsets.only(
-                top: 8.0,
-                bottom: assetBottomPadding,
-                left: horizontalPadding,
-                right: horizontalPadding,
-              ),
-              child: Center(
-                child: SizedBox(
-                  height: 190,
-                  child: isSvgAsset
-                      ? SvgPicture.asset(asset!, fit: BoxFit.contain)
-                      : Image.asset(asset!, fit: BoxFit.contain),
-                ),
-              ),
+            Builder(
+              builder: (context) {
+                final keyboardUp = MediaQuery.of(context).viewInsets.bottom > 0;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 320),
+                  curve: Curves.easeOutCubic,
+                  padding: EdgeInsets.only(
+                    top: 8.0,
+                    bottom: keyboardUp ? 8.0 : assetBottomPadding,
+                    left: horizontalPadding,
+                    right: horizontalPadding,
+                  ),
+                  height: keyboardUp ? 100 : 206,
+                  child: Center(
+                    child: isSvgAsset
+                        ? SvgPicture.asset(asset!, fit: BoxFit.contain)
+                        : Image.asset(asset!, fit: BoxFit.contain),
+                  ),
+                );
+              },
             ),
           if (descriptionWidget != null)
             Padding(
@@ -177,11 +184,11 @@ class PairDeviceBody extends StatelessWidget {
             ),
           if (child != null)
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: child,
             ),
+          if (child != null)
+            const SizedBox(height: 24),
           if (primaryButtonLabel != null || secondaryButtonLabel != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
