@@ -214,7 +214,7 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
           const SizedBox(height: 24),
           Text(
             context.text.motor_pairing_activating,
-            style: context.textStyle.bodyMedium.copyWith(color: context.color.textSecondary),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: context.color.textSecondary),
             textAlign: TextAlign.center,
           ),
         ],

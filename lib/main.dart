@@ -69,12 +69,14 @@ class _LauncherPage extends StatelessWidget {
                     children: [
                       Text(
                         'Moonboon',
-                        style: context.textStyle.headlineMedium.withColor(context.color.textPrimary),
+                        style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 2),
                       Text(
                         'Setup Flows',
-                        style: context.textStyle.bodyMedium.withColor(context.color.textSecondary),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: context.color.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -222,12 +224,14 @@ class _FlowTile extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: context.textStyle.titleLarge.withColor(context.color.textPrimary),
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: context.textStyle.bodySmall.withColor(context.color.textTertiary),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: context.color.textTertiary,
+                    ),
                   ),
                 ],
               ),
