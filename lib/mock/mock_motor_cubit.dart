@@ -9,19 +9,32 @@ class MockMotorCubit extends Cubit<PairDeviceState> {
 
   void nextStep() {
     final s = state;
-    if (s is PairDeviceStatePowerUp) emit(PairDeviceStateTurnOn());
-    else if (s is PairDeviceStateTurnOn) emit(PairDeviceStateTurnOnBluetooth());
-    else if (s is PairDeviceStateTurnOnBluetooth) {
-      emit(PairDeviceStateScanningStep());
-      _delay(2500, () => emit(PairDeviceStateFound(_mockDevices.take(1).toList())));
+    if (s is PairDeviceStatePowerUp) {
+      emit(PairDeviceStateTurnOn());
+    } else if (s is PairDeviceStateTurnOn) {
+      emit(PairDeviceStateTurnOnBluetooth());
+    } else if (s is PairDeviceStateTurnOnBluetooth) {
+      emit(PairDeviceStateBluetoothPermission());
     }
   }
 
+  void bluetoothPermissionGranted() {
+    emit(PairDeviceStateScanningStep());
+    _delay(2500, () => emit(PairDeviceStateFound(_mockDevices)));
+  }
+
+  void bluetoothPermissionDenied() => emit(PairDeviceStateBluetoothPermissionDenied());
+
   void goToPreviousStep() {
     final s = state;
-    if (s is PairDeviceStateTurnOn) emit(PairDeviceStatePowerUp());
-    else if (s is PairDeviceStateTurnOnBluetooth) emit(PairDeviceStateTurnOn());
-    else if (s is PairDeviceStateScanningStep || s is PairDeviceStateFound) {
+    if (s is PairDeviceStateTurnOn) {
+      emit(PairDeviceStatePowerUp());
+    } else if (s is PairDeviceStateTurnOnBluetooth) {
+      emit(PairDeviceStateTurnOn());
+    } else if (s is PairDeviceStateBluetoothPermission ||
+        s is PairDeviceStateBluetoothPermissionDenied ||
+        s is PairDeviceStateScanningStep ||
+        s is PairDeviceStateFound) {
       emit(PairDeviceStateTurnOnBluetooth());
     }
   }

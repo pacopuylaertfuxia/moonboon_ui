@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../common/circular_loading_bar.dart';
@@ -38,6 +39,8 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
     PairDeviceStatePowerUp() => 1,
     PairDeviceStateTurnOn() => 2,
     PairDeviceStateTurnOnBluetooth() => 3,
+    PairDeviceStateBluetoothPermission() => 3,
+    PairDeviceStateBluetoothPermissionDenied() => 3,
     PairDeviceStateScanningStep() => 4,
     PairDeviceStateFound() => 4,
     PairDeviceStateLoading() => 5,
@@ -84,13 +87,15 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
         PairDeviceStatePowerUp() => _buildPowerUpStep(context),
         PairDeviceStateTurnOn() => _buildTurnOnStep(context),
         PairDeviceStateTurnOnBluetooth() => _buildTurnOnBluetoothStep(context),
-        PairDeviceStateBluetoothPermission() => _buildScanningStep(context),
-        PairDeviceStateBluetoothPermissionDenied() => _buildScanningStep(context),
+        PairDeviceStateBluetoothPermission() => _buildBluetoothPermissionStep(context),
+        PairDeviceStateBluetoothPermissionDenied() => _buildBluetoothPermissionDeniedStep(context),
         PairDeviceStateEnterPairingMode() => _buildScanningStep(context),
         PairDeviceStateScanningStep() => _buildScanningStep(context),
         PairDeviceStateLoading() => _buildConnectingStep(context),
         PairDeviceStateActivating s => _buildActivatingStep(context, s.deviceName, s.progress),
-        PairDeviceStateFound s => _buildFoundStep(context, s.deviceNames),
+        PairDeviceStateFound s => s.deviceNames.length == 1
+            ? _buildSingleFoundStep(context, s.deviceNames.first)
+            : _buildMultipleFoundStep(context, s.deviceNames),
         PairDeviceStatePaired() => _buildPairedStep(context),
         PairDeviceStateGetNotified() => _buildGetNotifiedStep(context),
         PairDeviceStateError s => _buildErrorStep(context, s.message),
@@ -114,7 +119,7 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
 
   String _bluetoothVideo(bool isDark) => switch (widget.motorType) {
     MotorType.basic   => isDark ? 'assets/videos/motor_basic_turn_on_bluetooth_dark.mov' : 'assets/videos/motor_basic_turn_on_bluetooth.mov',
-    MotorType.premium => isDark ? 'assets/videos/motor_premium_turn_on_bluetooth_dark.mov' : 'assets/videos/motor_premium_turn_on_bluetooth_light.mov',
+    MotorType.premium => isDark ? 'assets/videos/motor_turn_on_bluetooth_dark.mov' : 'assets/videos/motor_turn_on_bluetooth.mov',
   };
 
   // ── Step builders ─────────────────────────────────────────────────────────
@@ -222,7 +227,31 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
     );
   }
 
-  Widget _buildFoundStep(BuildContext context, List<String> devices) {
+  Widget _buildBluetoothPermissionStep(BuildContext context) {
+    return _BluetoothPermissionStep(
+      key: const ValueKey('bluetoothPermission'),
+      pairingImageAsset: _pairingImage,
+      onGranted: () => context.read<MockMotorCubit>().bluetoothPermissionGranted(),
+      onDenied: () => context.read<MockMotorCubit>().bluetoothPermissionDenied(),
+    );
+  }
+
+  Widget _buildBluetoothPermissionDeniedStep(BuildContext context) {
+    return PairDeviceBody(
+      key: const ValueKey('bluetoothPermissionDenied'),
+      title: context.text.allow_bluetooth_title,
+      description: context.text.allow_bluetooth_description,
+      primaryButtonLabel: context.text.open_settings,
+      secondaryButtonLabel: context.text.try_again,
+      onPrimaryButtonPressed: () {
+        // no-op in playground
+      },
+      onSecondaryButtonPressed: () => context.read<MockMotorCubit>().goToPreviousStep(),
+      child: const SizedBox(height: 24),
+    );
+  }
+
+  Widget _buildSingleFoundStep(BuildContext context, String deviceName) {
     return PairDeviceBody(
       key: const ValueKey('found'),
       title: 'Motor found',
@@ -232,10 +261,7 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
           Center(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(32),
-              child: Image.asset(
-                _pairingImage,
-                height: 200,
-              ),
+              child: Image.asset(_pairingImage, height: 200),
             ),
           ),
           SetupTextField(
@@ -246,12 +272,44 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
             onSubmitted: (name) {
               FocusScope.of(context).unfocus();
               context.read<MockMotorCubit>().connectToDevice(
-                devices.isEmpty ? '' : devices.first,
+                deviceName,
                 friendlyName: name.trim(),
               );
             },
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMultipleFoundStep(BuildContext context, List<String> devices) {
+    final motorImage = switch (widget.motorType) {
+      MotorType.basic   => 'assets/images/motor_connect_packshot.png',
+      MotorType.premium => 'assets/images/motor_premium_packshot.png',
+    };
+    const mockSerials = ['MB-1042', 'MB-2391'];
+    return PairDeviceBody(
+      key: const ValueKey('foundMultiple'),
+      title: 'Motors found',
+      description: 'Select the motor you want to connect to.',
+      titleBottomPadding: 8,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(devices.length, (i) {
+            return _MotorPickCard(
+              deviceName: devices[i],
+              motorImage: motorImage,
+              serialNumber: i < mockSerials.length ? mockSerials[i] : 'MB-000$i',
+              onConnect: () => context.read<MockMotorCubit>().connectToDevice(
+                devices[i],
+                friendlyName: devices[i],
+              ),
+            );
+          }),
+        ),
       ),
     );
   }
@@ -355,6 +413,165 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
       description: context.text.press_button_description,
       primaryButtonLabel: context.text.next,
       onPrimaryButtonPressed: () => context.read<MockMotorCubit>().connectToDevice(address),
+    );
+  }
+}
+
+// ── Bluetooth permission dialog step ──────────────────────────────────────────
+
+class _BluetoothPermissionStep extends StatefulWidget {
+  final String pairingImageAsset;
+  final VoidCallback onGranted;
+  final VoidCallback onDenied;
+
+  const _BluetoothPermissionStep({
+    super.key,
+    required this.pairingImageAsset,
+    required this.onGranted,
+    required this.onDenied,
+  });
+
+  @override
+  State<_BluetoothPermissionStep> createState() => _BluetoothPermissionStepState();
+}
+
+class _BluetoothPermissionStepState extends State<_BluetoothPermissionStep> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _showPermissionDialog();
+    });
+  }
+
+  Future<void> _showPermissionDialog() async {
+    await showCupertinoDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: const Text('"Moonboon" Would Like to Use Bluetooth'),
+        content: const Text(
+          'Moonboon uses Bluetooth to connect to and control your motor.',
+        ),
+        actions: [
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              widget.onDenied();
+            },
+            child: const Text("Don't Allow"),
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              widget.onGranted();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PairDeviceBody(
+      key: const ValueKey('bluetoothPermissionBg'),
+      title: context.text.motor_pairing_looking,
+      child: WifiRadarAnimation(
+        size: 270,
+        imageAsset: widget.pairingImageAsset,
+      ),
+    );
+  }
+}
+
+// ── Motor pick card (multiple-found picker) ───────────────────────────────────
+
+class _MotorPickCard extends StatelessWidget {
+  final String deviceName;
+  final String motorImage;
+  final String serialNumber;
+  final VoidCallback onConnect;
+
+  static const double _cardWidth = 200;
+
+  const _MotorPickCard({
+    required this.deviceName,
+    required this.motorImage,
+    required this.serialNumber,
+    required this.onConnect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: _cardWidth,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: context.color.surfaceSecondary,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Image area — rotated for visual flair, clipped by container
+          SizedBox(
+            height: 160,
+            child: OverflowBox(
+              maxWidth: _cardWidth + 60,
+              maxHeight: 220,
+              alignment: Alignment.center,
+              child: Transform.rotate(
+                angle: 0.52, // ~30°
+                child: Image.asset(motorImage, height: 180),
+              ),
+            ),
+          ),
+          // Info area
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.text.serial_number,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: context.color.brandPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  serialNumber,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: context.color.textTertiary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: onConnect,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: context.color.surfaceTertiary,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      context.text.connect,
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
