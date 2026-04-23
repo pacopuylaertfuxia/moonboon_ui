@@ -15,6 +15,7 @@ import 'bloc/monitor_state.dart';
 import 'bloc/setup_error_type.dart';
 import 'component/charging_animation.dart';
 import 'component/found_wifi_network.dart';
+import '../common/device_pick_card.dart';
 import 'found_monitor.dart';
 import 'setup_text_field.dart';
 import 'component/noise_detection_body.dart';
@@ -139,8 +140,10 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
                             context.read<MockMonitorCubit>().selectDevice(
                               device,
                             ),
-                        child: _DevicePickCard(
+                        child: DevicePickCard(
+                          imageAsset: 'assets/images/babymonitor_packshot.png',
                           serialNumber: device.serialNumber,
+                          label: 'Moonboon Monitor',
                         ),
                       ),
                     )
@@ -471,45 +474,3 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
   }
 }
 
-/// Minimal device card for multi-device selection
-class _DevicePickCard extends StatelessWidget {
-  final String serialNumber;
-
-  const _DevicePickCard({required this.serialNumber});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 200,
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.color.surfaceSecondary,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.color.borderSubdued),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(
-            'assets/images/babymonitor_packshot.png',
-            height: 140,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'S/N: $serialNumber',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: context.color.textTertiary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Moonboon Monitor',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ],
-      ),
-    );
-  }
-}

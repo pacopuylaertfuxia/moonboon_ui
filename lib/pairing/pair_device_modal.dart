@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../common/circular_loading_bar.dart';
+import '../common/device_pick_card.dart';
 import '../setup_flow/setup_text_field.dart';
 import '../common/pair_device_body.dart';
 import '../common/setup_sheet_body.dart';
@@ -288,6 +289,10 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
       MotorType.premium => 'assets/images/motor_premium_packshot.png',
     };
     const mockSerials = ['MB-1042', 'MB-2391'];
+    final motorLabel = switch (widget.motorType) {
+      MotorType.basic   => 'Moonboon Motor',
+      MotorType.premium => 'Moonboon Motor Premium',
+    };
     return PairDeviceBody(
       key: const ValueKey('foundMultiple'),
       title: 'Motors found',
@@ -299,13 +304,15 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: List.generate(devices.length, (i) {
-            return _MotorPickCard(
-              deviceName: devices[i],
-              motorImage: motorImage,
-              serialNumber: i < mockSerials.length ? mockSerials[i] : 'MB-000$i',
-              onConnect: () => context.read<MockMotorCubit>().connectToDevice(
+            return GestureDetector(
+              onTap: () => context.read<MockMotorCubit>().connectToDevice(
                 devices[i],
                 friendlyName: devices[i],
+              ),
+              child: DevicePickCard(
+                imageAsset: motorImage,
+                serialNumber: i < mockSerials.length ? mockSerials[i] : 'MB-000$i',
+                label: motorLabel,
               ),
             );
           }),
@@ -488,91 +495,4 @@ class _BluetoothPermissionStepState extends State<_BluetoothPermissionStep> {
   }
 }
 
-// ── Motor pick card (multiple-found picker) ───────────────────────────────────
-
-class _MotorPickCard extends StatelessWidget {
-  final String deviceName;
-  final String motorImage;
-  final String serialNumber;
-  final VoidCallback onConnect;
-
-  static const double _cardWidth = 200;
-
-  const _MotorPickCard({
-    required this.deviceName,
-    required this.motorImage,
-    required this.serialNumber,
-    required this.onConnect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: _cardWidth,
-      margin: const EdgeInsets.symmetric(horizontal: 8),
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: context.color.surfaceSecondary,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Image area — rotated for visual flair, clipped by container
-          SizedBox(
-            height: 160,
-            child: OverflowBox(
-              maxWidth: _cardWidth + 60,
-              maxHeight: 220,
-              alignment: Alignment.center,
-              child: Transform.rotate(
-                angle: 0.52, // ~30°
-                child: Image.asset(motorImage, height: 180),
-              ),
-            ),
-          ),
-          // Info area
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.text.serial_number,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: context.color.brandPrimary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  serialNumber,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: context.color.textTertiary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                GestureDetector(
-                  onTap: onConnect,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      color: context.color.surfaceTertiary,
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      context.text.connect,
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
