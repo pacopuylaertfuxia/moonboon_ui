@@ -1,14 +1,24 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'mock/mock_monitor_cubit.dart';
+import 'mock_screens/mock_monitor_settings_page.dart';
+import 'mock_screens/mock_monitor_stream_page.dart';
+import 'mock_screens/mock_settings_page.dart';
+import 'mock_screens/mock_nap_track_page.dart';
+import 'mock_screens/mock_devices_page.dart';
+import 'mock_screens/mock_motor_details_page.dart';
+import 'mock_screens/mock_motor_stream_page.dart';
 import 'mock/mock_motor_cubit.dart';
+import 'pairing/component/motor_video_animation.dart';
 import 'pairing/motor_type.dart';
 import 'pairing/pair_device_modal.dart';
 import 'setup_flow/bloc/final_configuration_step.dart';
-import 'setup_flow/component/charging_animation.dart';
 import 'setup_flow/component/noise_detection_body.dart';
+import 'setup_flow/component/sound_monitoring_consent_body.dart';
+import 'setup_flow/component/streaming_consent_body.dart';
 import 'setup_flow/component/setup_progress_indicator.dart';
 import 'setup_flow/component/wifi_radar_animation.dart';
 import 'setup_flow/monitor_provisioning_page.dart';
@@ -16,6 +26,16 @@ import 'common/button.dart';
 import 'common/device_radius.dart';
 import 'common/modal_sheet.dart';
 import 'common/pair_device_body.dart';
+import 'live_activity/live_activity_cubit.dart';
+import 'live_activity/live_activity_playground.dart';
+import 'live_activity/live_activity_service.dart';
+import 'live_activity/modular_activity_playground.dart';
+import 'live_activity/di_animation_demo.dart';
+import 'live_activity/di_live_demo.dart';
+import 'live_activity/prototype_conversion_page.dart';
+import 'live_activity/warm_monitor_demo.dart';
+import 'live_activity/variant10_demo.dart';
+import 'live_activity/variant11_demo.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_colors.dart';
 
@@ -31,22 +51,42 @@ class MoonboonUIApp extends StatefulWidget {
   State<MoonboonUIApp> createState() => _MoonboonUIAppState();
 }
 
+enum _ThemeVariant { light, dark, darkPlus, darkOriginal }
+
+extension _ThemeVariantLabel on _ThemeVariant {
+  String get label => switch (this) {
+        _ThemeVariant.light        => 'Light',
+        _ThemeVariant.dark         => 'Dark',
+        _ThemeVariant.darkPlus     => 'Dark +',
+        _ThemeVariant.darkOriginal => 'Dark OG',
+      };
+  ThemeColors get colors => switch (this) {
+        _ThemeVariant.light        => ThemeColors.light,
+        _ThemeVariant.dark         => ThemeColors.dark,
+        _ThemeVariant.darkPlus     => ThemeColors.darkVariantC,
+        _ThemeVariant.darkOriginal => ThemeColors.darkOriginal,
+      };
+  Brightness get brightness => this == _ThemeVariant.light ? Brightness.light : Brightness.dark;
+}
+
 class _MoonboonUIAppState extends State<MoonboonUIApp> {
-  ThemeMode _themeMode = ThemeMode.light;
+  _ThemeVariant _variant = _ThemeVariant.light;
+
+  void _cycleVariant() => setState(() {
+        _variant = _ThemeVariant.values[(_variant.index + 1) % _ThemeVariant.values.length];
+      });
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Moonboon UI',
       debugShowCheckedModeBanner: false,
-      theme: buildLightTheme(),
-      darkTheme: buildDarkTheme(),
-      themeMode: _themeMode,
+      theme: buildThemeWithColors(_variant.colors, _variant.brightness),
+      themeMode: ThemeMode.light, // always use theme, not darkTheme
       home: _PlaygroundPage(
-        themeMode: _themeMode,
-        onToggleTheme: () => setState(() {
-          _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-        }),
+        variantLabel: _variant.label,
+        isDark: _variant != _ThemeVariant.light,
+        onCycleVariant: _cycleVariant,
       ),
     );
   }
@@ -55,9 +95,14 @@ class _MoonboonUIAppState extends State<MoonboonUIApp> {
 // ── Playground ─────────────────────────────────────────────────────────────────
 
 class _PlaygroundPage extends StatefulWidget {
-  final ThemeMode themeMode;
-  final VoidCallback onToggleTheme;
-  const _PlaygroundPage({required this.themeMode, required this.onToggleTheme});
+  final String variantLabel;
+  final bool isDark;
+  final VoidCallback onCycleVariant;
+  const _PlaygroundPage({
+    required this.variantLabel,
+    required this.isDark,
+    required this.onCycleVariant,
+  });
   @override
   State<_PlaygroundPage> createState() => _PlaygroundPageState();
 }
@@ -69,14 +114,60 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
     BuildContext context, {
     required Widget child,
     ModalSheetBackground background = ModalSheetBackground.white,
-    // backgroundColor is ignored — use the background enum to control sheet color
-    Color? backgroundColor,
+    bool hasPadding = true,
   }) async {
     await ModalSheet.show(
       context: context,
       background: background,
+      hasPadding: hasPadding,
       duration: Duration.zero,
       child: child,
+    );
+  }
+
+  void _showModeSelectionSheet(BuildContext context) {
+    bool showHeader = false;
+    NoiseDetectionLevel level = NoiseDetectionLevel.medium;
+    bool onlyBabyCries = false;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      barrierColor: isDark
+          ? Colors.black.withValues(alpha: 0.75)
+          : Colors.black.withValues(alpha: 0.38),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ModeSelectionVariantToggle(
+              showHeader: showHeader,
+              onChanged: (v) => setSheetState(() => showHeader = v),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
+              child: ModalSheet(
+                hasPadding: false,
+                duration: Duration.zero,
+                background: ModalSheetBackground.cream,
+                child: ModeSelectionBody(
+                  level: level,
+                  onlyBabyCries: onlyBabyCries,
+                  title: showHeader ? 'Mode selection' : null,
+                  subtitle: showHeader
+                      ? 'Choose how sensitive the monitor should be to sounds.'
+                      : null,
+                  onLevelSelected: (l) => setSheetState(() => level = l),
+                  onOnlyBabyCriesChanged: (v) => setSheetState(() => onlyBabyCries = v),
+                  onContinue: () => Navigator.of(ctx).pop(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -93,114 +184,305 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
             child: Row(children: [
               Text('Moonboon UI', style: Theme.of(context).textTheme.titleLarge),
               const Spacer(),
-              IconButton(
-                icon: Icon(widget.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
-                onPressed: widget.onToggleTheme,
+              GestureDetector(
+                onTap: widget.onCycleVariant,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: context.color.surfaceTertiary,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        widget.isDark ? Icons.dark_mode : Icons.light_mode,
+                        size: 14,
+                        color: context.color.textSecondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        widget.variantLabel,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: context.color.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ]),
           ),
           const Divider(height: 1),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 32, 24, 48),
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 48),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+
                   // ── Setup flow ──────────────────────────────────────────
-                  const _SectionLabel('Setup flow'),
-                  const SizedBox(height: 16),
-                  _DemoTile(
-                    number: '▶',
-                    title: 'Complete setup flow',
-                    subtitle: 'All steps in sequence — charge · name · WiFi · config · consent · noise',
-                    onTap: () => _openMonitorSetupFlow(context),
+                  _CollapsibleSection(
+                    title: 'Setup Flow',
+                    initiallyExpanded: false,
+                    children: [
+                      _DemoTile(
+                        number: '▶',
+                        title: 'Complete setup flow',
+                        subtitle: 'All steps in sequence — charge · name · WiFi · config · consent · noise',
+                        onTap: () => _openMonitorSetupFlow(context),
+                      ),
+                      _DemoTile(
+                        number: '1',
+                        title: 'Charge monitor step',
+                        subtitle: 'First step — power up video',
+                        onTap: () => _show(context,
+                          hasPadding: false,
+                          child: const _WithStepper(step: 1, totalSteps: 5, child: _ChargingSheet())),
+                      ),
+                      _DemoTile(
+                        number: '1b',
+                        title: 'Searching for monitor',
+                        subtitle: 'Radar animation while scanning for Bluetooth device',
+                        onTap: () => _show(context,
+                          hasPadding: false,
+                          child: const _WithStepper(step: 2, totalSteps: 5, child: _SearchingSheet())),
+                      ),
+                      _DemoTile(
+                        number: '2',
+                        title: 'WiFi radar scanning',
+                        subtitle: 'Pulse-ring radar animation while searching for networks',
+                        onTap: () => _show(context,
+                          hasPadding: false,
+                          child: const _WithStepper(step: 3, totalSteps: 5, child: _RadarSheet())),
+                      ),
+                      _DemoTile(
+                        number: '3',
+                        title: 'Final configuration step',
+                        subtitle: 'Progress ring · baby-themed typewriter messages · cycles steps',
+                        onTap: () async {
+                          setState(() => _hideListBehindSheet = true);
+                          await _show(context,
+                            hasPadding: false,
+                            child: const _WithStepper(step: 4, totalSteps: 5, child: _FinalConfigSheet()));
+                          if (mounted) setState(() => _hideListBehindSheet = false);
+                        },
+                      ),
+                      _DemoTile(
+                        number: '4',
+                        title: 'Allow sound monitoring',
+                        subtitle: 'Consent step — give consent or disable sound monitoring',
+                        onTap: () => _show(context,
+                          hasPadding: false,
+                          child: const _SoundMonitoringConsentSheet()),
+                      ),
+                      _DemoTile(
+                        number: '5',
+                        title: 'Noise detection step',
+                        subtitle: 'Redesigned level picker with AI badge · fully interactive',
+                        onTap: () => _showModeSelectionSheet(context),
+                      ),
+                      _DemoTile(
+                        number: '6',
+                        title: 'Your device is ready to stream',
+                        subtitle: 'Full-bleed packshot · "Start streaming" CTA',
+                        onTap: () => _show(context,
+                          hasPadding: false,
+                          child: const _StreamingConsentSheet()),
+                      ),
+                      _DemoTile(
+                        number: '7',
+                        title: 'Error state',
+                        subtitle: 'Error body with "troubleshoot page" link',
+                        onTap: () => _show(context, hasPadding: false, child: const _ErrorSheet()),
+                      ),
+                      _DemoTile(
+                        number: '8',
+                        title: 'Troubleshoot page',
+                        subtitle: 'Full-screen — 4 step cards + contact support link',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const _TroubleshootPage())),
+                      ),
+                      _DemoTile(
+                        number: '9',
+                        title: 'Fluid sheet resize',
+                        subtitle: 'Sheet height animates smoothly between steps',
+                        onTap: () => _show(context,
+                          hasPadding: false,
+                          child: const _FluidResizeSheet()),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  _DemoTile(
-                    number: '1',
-                    title: 'Charge monitor step',
-                    subtitle: 'First step — USB-C cable animation + scanning text',
-                    onTap: () => _show(context,
-                      child: const _WithStepper(step: 1, totalSteps: 5, child: _ChargingSheet())),
+
+                  // ── Devices tab ─────────────────────────────────────────
+                  _CollapsibleSection(
+                    title: 'Devices Tab',
+                    children: [
+                      _DemoTile(
+                        number: '📱',
+                        title: 'Devices — Design Vision',
+                        subtitle: 'Full-bleed product cards · motor running state · mode picker',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const MockDevicesPage())),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  _DemoTile(
-                    number: '2',
-                    title: 'WiFi radar scanning',
-                    subtitle: 'Pulse-ring radar animation while searching for networks',
-                    onTap: () => _show(context,
-                      child: const _WithStepper(step: 3, totalSteps: 5, child: _RadarSheet())),
+
+                  // ── Monitor stream ──────────────────────────────────────
+                  _CollapsibleSection(
+                    title: 'Monitor Stream',
+                    children: [
+                      _DemoTile(
+                        number: '📡',
+                        title: 'Monitor stream page',
+                        subtitle: 'Full page — app bar · telemetry · 16:9 video · notification feed',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const MockMonitorStreamPage())),
+                      ),
+                      _DemoTile(
+                        number: '⚙️',
+                        title: 'Monitor settings',
+                        subtitle: 'Noise detection · toggles · network · support · remove',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const MockMonitorSettingsPage())),
+                      ),
+                      _DemoTile(
+                        number: '👤',
+                        title: 'Profile / Settings',
+                        subtitle: 'Profile card · 2-col grid tiles · version label',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const MockSettingsPage())),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  _DemoTile(
-                    number: '3',
-                    title: 'Final configuration step',
-                    subtitle: 'Progress ring · baby-themed typewriter messages · cycles steps',
-                    onTap: () async {
-                      setState(() => _hideListBehindSheet = true);
-                      await _show(context,
-                        child: const _WithStepper(step: 4, totalSteps: 5, child: _FinalConfigSheet()));
-                      if (mounted) setState(() => _hideListBehindSheet = false);
-                    },
+
+                  // ── Live Activities ─────────────────────────────────────
+                  _CollapsibleSection(
+                    title: 'Live Activities',
+                    children: [
+                      _DemoTile(
+                        number: '👶',
+                        title: 'Variant 11 — Lock Screen Pill',
+                        subtitle: 'New Figma design — moonboon wordmark · camera rings · waveform · baby face',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const Variant11Demo()),
+                        ),
+                      ),
+                      _DemoTile(
+                        number: '🌙',
+                        title: 'Variant 10',
+                        subtitle: 'Figma-faithful — moon pill · [name] is Quiet/Crying · KeplerStd · warm lock screen',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const Variant10Demo()),
+                        ),
+                      ),
+                      _DemoTile(
+                        number: '🌿',
+                        title: 'Warm Monitor (V9)',
+                        subtitle: 'New design — cream bg · moon pill · waveform strip · stat cards',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const WarmMonitorDemo()),
+                        ),
+                      ),
+                      _DemoTile(
+                        number: '⭐',
+                        title: 'Prototype Conversion',
+                        subtitle: 'Monitor A · 5s auto-expand · image rotation · cry detection',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PrototypeConversionPage(),
+                          ),
+                        ),
+                      ),
+                      _DemoTile(
+                        number: '⬤',
+                        title: 'Activity Playground',
+                        subtitle: '6 designs · compare on Lock Screen & Dynamic Island simultaneously',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider(
+                              create: (_) => LiveActivityCubit(LiveActivityService()),
+                              child: const LiveActivityPlayground(),
+                            ),
+                          ),
+                        ),
+                      ),
+                      _DemoTile(
+                        number: '🧩',
+                        title: 'Modular Activity',
+                        subtitle: 'Motor · Monitor · Baby status · Temp · Humidity · Battery · WiFi',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ModularActivityPlayground()),
+                        ),
+                      ),
+                      _DemoTile(
+                        number: '🏝️',
+                        title: 'Dynamic Island Animation',
+                        subtitle: 'Compact → expand → Monitoring → Quiet → Crying sequence',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const DiAnimationDemo()),
+                        ),
+                      ),
+                      _DemoTile(
+                        number: '🔴',
+                        title: 'Dynamic Island — Live',
+                        subtitle: 'Runs the sequence on the real Dynamic Island',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const DiLiveDemo()),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  _DemoTile(
-                    number: '4',
-                    title: 'Configuration complete',
-                    subtitle: 'Full-bleed success illustration with floating Zzz animation',
-                    onTap: () => _show(context, child: const _ConfigCompleteSheet()),
+
+                  // ── Nap tracking ─────────────────────────────────────────
+                  _CollapsibleSection(
+                    title: 'Nap Tracking',
+                    children: [
+                      _DemoTile(
+                        number: '🌙',
+                        title: 'Nap tracking screen',
+                        subtitle: 'Tab screen — date nav · active timer · nap list',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const MockNapTrackPage())),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  _DemoTile(
-                    number: '5',
-                    title: 'Noise detection step',
-                    subtitle: 'Redesigned level picker with AI badge · fully interactive',
-                    onTap: () => _show(context,
-                      background: ModalSheetBackground.cream,
-                      child: const _WithStepper(step: 5, totalSteps: 5, child: _NoiseDetectionSheet())),
-                  ),
-                  const SizedBox(height: 10),
-                  _DemoTile(
-                    number: '6',
-                    title: 'Error state',
-                    subtitle: 'Error body with "troubleshoot page" link',
-                    onTap: () => _show(context, child: const _ErrorSheet()),
-                  ),
-                  const SizedBox(height: 10),
-                  _DemoTile(
-                    number: '7',
-                    title: 'Troubleshoot page',
-                    subtitle: 'Full-screen — 4 step cards + contact support link',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const _TroubleshootPage())),
-                  ),
-                  const SizedBox(height: 10),
-                  _DemoTile(
-                    number: '8',
-                    title: 'Fluid sheet resize',
-                    subtitle: 'Sheet height animates smoothly between steps',
-                    onTap: () => _show(context,
-                      backgroundColor: context.color.surfaceSecondary,
-                      child: const _FluidResizeSheet()),
-                  ),
-                  const SizedBox(height: 40),
 
                   // ── Motor ───────────────────────────────────────────────
-                  const _SectionLabel('Motor Setup'),
-                  const SizedBox(height: 16),
-                  _DemoTile(
-                    number: '→',
-                    title: 'Basic — full pairing flow',
-                    subtitle: 'Power up → Turn on → BT → Scan → Paired',
-                    onTap: () => _openMotorFlow(context, MotorType.basic),
+                  _CollapsibleSection(
+                    title: 'Motor Setup',
+                    children: [
+                      _DemoTile(
+                        number: '→',
+                        title: 'Motor stream screen',
+                        subtitle: 'Timer · tempo · start/stop',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const MockMotorStreamPage()),
+                        ),
+                      ),
+                      _DemoTile(
+                        number: '→',
+                        title: 'Basic — full pairing flow',
+                        subtitle: 'Power up → Turn on → BT → Scan → Paired',
+                        onTap: () => _openMotorFlow(context, MotorType.basic),
+                      ),
+                      _DemoTile(
+                        number: '→',
+                        title: 'Premium — full pairing flow',
+                        subtitle: 'Composite power up → Knobs → BT spotlight → Scan',
+                        onTap: () => _openMotorFlow(context, MotorType.premium),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  _DemoTile(
-                    number: '→',
-                    title: 'Premium — full pairing flow',
-                    subtitle: 'Composite power up → Knobs → BT spotlight → Scan',
-                    onTap: () => _openMotorFlow(context, MotorType.premium),
-                  ),
+
                 ],
               ),
             ),
@@ -217,36 +499,46 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.38),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(6),
-        child: ClipRRect(
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(32),
-            topRight: const Radius.circular(32),
-            bottomLeft: Radius.circular(br),
-            bottomRight: Radius.circular(br),
+      builder: (ctx) {
+        final keyboardUp = MediaQuery.of(ctx).viewInsets.bottom > 0;
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+          padding: EdgeInsets.only(
+            left: keyboardUp ? 0 : 6,
+            right: keyboardUp ? 0 : 6,
+            top: keyboardUp ? 0 : 6,
+            bottom: keyboardUp ? 0 : 6,
           ),
-          child: BlocProvider(
-            create: (_) => MockMonitorCubit()..checkCurrentUser(),
-            child: AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              alignment: Alignment.topCenter,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeInOut,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: keyboardUp
+                  ? const BorderRadius.vertical(top: Radius.circular(32))
+                  : BorderRadius.only(
+                      topLeft: const Radius.circular(32),
+                      topRight: const Radius.circular(32),
+                      bottomLeft: Radius.circular(br),
+                      bottomRight: Radius.circular(br),
+                    ),
+              color: getModalSheetBackgroundColor(ctx, ModalSheetBackground.white),
+            ),
+            child: BlocProvider(
+              create: (_) => MockMonitorCubit()..checkCurrentUser(),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxHeight: MediaQuery.of(ctx).size.height - 60,
                 ),
-                child: ColoredBox(
-                  color: context.color.surfacePrimary,
-                  child: MonitorProvisioningPage(
-                    onMonitorAdded: () => Navigator.of(ctx).pop(),
-                  ),
+                child: MonitorProvisioningPage(
+                  onMonitorAdded: () => Navigator.of(ctx).pop(),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -257,34 +549,44 @@ class _PlaygroundPageState extends State<_PlaygroundPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.38),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(6),
-        child: ClipRRect(
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(32),
-            topRight: const Radius.circular(32),
-            bottomLeft: Radius.circular(br),
-            bottomRight: Radius.circular(br),
+      builder: (ctx) {
+        final keyboardUp = MediaQuery.of(ctx).viewInsets.bottom > 0;
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+          padding: EdgeInsets.only(
+            left: keyboardUp ? 0 : 6,
+            right: keyboardUp ? 0 : 6,
+            top: keyboardUp ? 0 : 6,
+            bottom: keyboardUp ? 0 : 6,
           ),
-          child: BlocProvider(
-            create: (_) => MockMotorCubit(),
-            child: AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              alignment: Alignment.topCenter,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 320),
+            curve: Curves.easeOutCubic,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: keyboardUp
+                  ? const BorderRadius.vertical(top: Radius.circular(32))
+                  : BorderRadius.only(
+                      topLeft: const Radius.circular(32),
+                      topRight: const Radius.circular(32),
+                      bottomLeft: Radius.circular(br),
+                      bottomRight: Radius.circular(br),
+                    ),
+              color: getModalSheetBackgroundColor(ctx, ModalSheetBackground.white),
+            ),
+            child: BlocProvider(
+              create: (_) => MockMotorCubit(),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxHeight: MediaQuery.of(ctx).size.height - 60,
                 ),
-                child: ColoredBox(
-                  color: context.color.surfacePrimary,
-                  child: PairDeviceModal(motorType: motorType),
-                ),
+                child: PairDeviceModal(motorType: motorType),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -333,19 +635,87 @@ class _WithStepper extends StatelessWidget {
   }
 }
 
-// ── Shared tile ────────────────────────────────────────────────────────────────
+// ── Collapsible section ────────────────────────────────────────────────────────
 
-class _SectionLabel extends StatelessWidget {
-  final String text;
-  const _SectionLabel(this.text);
+class _CollapsibleSection extends StatefulWidget {
+  final String title;
+  final List<Widget> children;
+  final bool initiallyExpanded;
+  const _CollapsibleSection({
+    required this.title,
+    required this.children,
+    this.initiallyExpanded = true,
+  });
   @override
-  Widget build(BuildContext context) => Text(
-    text.toUpperCase(),
-    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-      color: context.color.textTertiary, letterSpacing: 1.2,
-    ),
-  );
+  State<_CollapsibleSection> createState() => _CollapsibleSectionState();
 }
+
+class _CollapsibleSectionState extends State<_CollapsibleSection> {
+  late bool _expanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _expanded = widget.initiallyExpanded;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // ── Header ──────────────────────────────────────────────────────
+        GestureDetector(
+          onTap: () => setState(() => _expanded = !_expanded),
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            child: Row(
+              children: [
+                Text(
+                  widget.title.toUpperCase(),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: context.color.textTertiary,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const Spacer(),
+                AnimatedRotation(
+                  turns: _expanded ? 0 : -0.25,
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                  child: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 18,
+                    color: context.color.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // ── Items ────────────────────────────────────────────────────────
+        AnimatedSize(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          child: _expanded
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 10,
+                  children: [
+                    ...widget.children,
+                    const SizedBox(height: 8),
+                  ],
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Shared tile ────────────────────────────────────────────────────────────────
 
 class _DemoTile extends StatelessWidget {
   final String number;
@@ -379,7 +749,9 @@ class _DemoTile extends StatelessWidget {
               Text(subtitle, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: context.color.textTertiary)),
             ],
           )),
-          Icon(Icons.chevron_right, size: 18, color: context.color.textTertiary),
+          SvgPicture.asset('assets/icons/utility/chevron_right.svg',
+            colorFilter: ColorFilter.mode(context.color.textTertiary, BlendMode.srcIn),
+            width: 18, height: 18),
         ]),
       ),
     );
@@ -394,19 +766,23 @@ class _ChargingSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return PairDeviceBody(
       title: 'Plug in your monitor',
-      asset: 'assets/illustrations/monitor/illustration_monitor_front.png',
       description: 'Keep the monitor plugged in throughout the entire setup process.',
-      assetBottomPadding: 0,
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const ChargingAnimation(),
-        const SizedBox(height: 24),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text('Looking for your monitor…', style: TextStyle(color: context.color.textTertiary, fontSize: 15)),
-          const SizedBox(width: 16),
-          SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: context.color.textTertiary.withValues(alpha: 0.5))),
-        ]),
-        const SizedBox(height: 24),
-      ]),
+      primaryButtonLabel: 'Next',
+      onPrimaryButtonPressed: () {},
+      child: const MotorVideoAnimation(
+        assetPath: 'assets/videos/monitor_power_up.mov',
+      ),
+    );
+  }
+}
+
+class _SearchingSheet extends StatelessWidget {
+  const _SearchingSheet();
+  @override
+  Widget build(BuildContext context) {
+    return PairDeviceBody(
+      title: 'Searching...',
+      child: const WifiRadarAnimation(size: 270),
     );
   }
 }
@@ -422,7 +798,7 @@ class _RadarSheet extends StatelessWidget {
         const WifiRadarAnimation(size: 270),
         const SizedBox(height: 20),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text('Looking for WiFi networks…', style: TextStyle(color: context.color.textTertiary, fontSize: 15)),
+          Text('Looking for WiFi networks…', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: context.color.textTertiary)),
           const SizedBox(width: 10),
           SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: context.color.textTertiary.withValues(alpha: 0.5))),
         ]),
@@ -462,61 +838,43 @@ class _FinalConfigSheetState extends State<_FinalConfigSheet> {
   }
 }
 
-class _ConfigCompleteSheet extends StatelessWidget {
-  const _ConfigCompleteSheet();
+class _SoundMonitoringConsentSheet extends StatelessWidget {
+  const _SoundMonitoringConsentSheet();
   @override
   Widget build(BuildContext context) {
-    return PairDeviceBody(
-      title: 'All set!',
-      primaryButtonLabel: 'Continue',
-      onPrimaryButtonPressed: () => Navigator.of(context).pop(),
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 24),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.all(Radius.circular(32)),
-            child: Image.asset('assets/images/monitor_setup_success.png', width: double.infinity, fit: BoxFit.fitWidth),
-          ),
-          const SizedBox(height: 32),
-          Text('Sweet dreams are incoming', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: context.color.textTertiary)),
-        ]),
-      ),
+    return SoundMonitoringConsentBody(
+      onGiveConsent: () => Navigator.of(context).pop(),
+      onDisable: () => Navigator.of(context).pop(),
     );
   }
 }
 
-class _NoiseDetectionSheet extends StatefulWidget {
-  const _NoiseDetectionSheet();
-  @override
-  State<_NoiseDetectionSheet> createState() => _NoiseDetectionSheetState();
-}
-class _NoiseDetectionSheetState extends State<_NoiseDetectionSheet> {
-  NoiseDetectionLevel _level = NoiseDetectionLevel.medium;
-  bool _onlyBabyCries = false;
+class _StreamingConsentSheet extends StatelessWidget {
+  const _StreamingConsentSheet();
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: context.color.surfaceSecondary,
-      child: NoiseDetectionBody(
-        level: _level,
-        onlyBabyCries: _onlyBabyCries,
-        onLevelSelected: (l) => setState(() => _level = l),
-        onOnlyBabyCriesChanged: (v) => setState(() => _onlyBabyCries = v),
-        onContinue: () => Navigator.of(context).pop(),
-      ),
+    return StreamingConsentBody(
+      onContinue: () => Navigator.of(context).pop(),
     );
   }
 }
+
 
 class _ErrorSheet extends StatelessWidget {
   const _ErrorSheet();
   @override
   Widget build(BuildContext context) {
     return PairDeviceErrorBody(
-      title: 'Could not connect to your monitor',
-      description: 'Something went wrong during setup. Make sure your monitor is still charging and close to your phone, then try again.',
-      primaryButtonLabel: 'Try again',
+      title: 'Something went wrong',
+      description: 'Ensure your device is charging while connecting. Also, set up in an area with a strong Wi-Fi connection and keep your Bluetooth enabled.',
+      primaryButtonLabel: 'Retry',
       onPrimaryButtonPressed: () => Navigator.of(context).pop(),
+      onTroubleshoot: () {
+        Navigator.of(context).pop();
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const _TroubleshootPage()),
+        );
+      },
     );
   }
 }
@@ -543,9 +901,9 @@ class _FluidResizeSheetState extends State<_FluidResizeSheet> {
       alignment: Alignment.bottomCenter,
       child: Padding(
         key: ValueKey(_step),
-        padding: const EdgeInsets.fromLTRB(16, 40, 16, 48),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 48),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(step.label, style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: context.color.textSecondary), textAlign: TextAlign.center),
+          Text(step.label, style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: context.color.textPrimary), textAlign: TextAlign.center),
           const SizedBox(height: 20),
           for (int i = 0; i < step.lines; i++)
             Container(height: 14, margin: const EdgeInsets.only(bottom: 10),
@@ -567,89 +925,189 @@ class _FluidResizeSheetState extends State<_FluidResizeSheet> {
 
 class _TroubleshootPage extends StatelessWidget {
   const _TroubleshootPage();
+
   @override
   Widget build(BuildContext context) {
+    final c = context.color;
+    final safeBottom = MediaQuery.of(context).viewPadding.bottom;
+
     return Scaffold(
-      backgroundColor: context.color.surfaceSecondary,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: context.color.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewPadding.bottom + 40,
-          left: 16, right: 16,
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text.rich(TextSpan(
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: context.color.textSecondary),
-              children: const [
-                TextSpan(text: 'Having '),
-                TextSpan(text: 'trouble', style: TextStyle(fontStyle: FontStyle.italic)),
-                TextSpan(text: ' setting up your monitor?'),
-              ],
-            )),
-          ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              'Work through these steps one by one — most issues are fixed within the first two.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: context.color.textTertiary, height: 1.5),
+      backgroundColor: c.surfaceSecondary,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Back button
+            Padding(
+              padding: const EdgeInsets.only(top: 8, left: 4),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: SvgPicture.asset(
+                      'assets/icons/utility/chevron_left.svg',
+                      colorFilter: ColorFilter.mode(c.textPrimary, BlendMode.srcIn),
+                      width: 24,
+                      height: 24,
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          const _TroubleshootCard(icon: Icons.cable_outlined, title: 'Make sure the monitor is charging',
-            description: 'The monitor must be plugged in throughout the entire setup. A low battery can interrupt the connection mid-process.'),
-          const SizedBox(height: 12),
-          const _TroubleshootCard(icon: Icons.bluetooth, title: 'Enable Bluetooth and stay close',
-            description: 'Bluetooth must be enabled on your phone. Stay within arm\'s reach of the monitor for the full duration of setup.'),
-          const SizedBox(height: 12),
-          const _TroubleshootCard(icon: Icons.wifi, title: 'Check your WiFi network',
-            description: 'The monitor only supports 2.4 GHz networks. Make sure your WiFi password is correct — it must be 8–63 characters.'),
-          const SizedBox(height: 12),
-          const _TroubleshootCard(icon: Icons.restart_alt, title: 'Reset the monitor to factory settings',
-            description: 'Hold the button on the monitor for 15 seconds until the LED starts blinking white. Then start setup from the beginning.'),
-          const SizedBox(height: 20),
-          Center(child: Text.rich(TextSpan(
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: context.color.textTertiary),
-            children: const [TextSpan(text: 'Still stuck? Contact support')],
-          ))),
-        ]),
+            // Scrollable content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(16, 0, 16, safeBottom + 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 16,
+                  children: [
+                    // Headline + subtitle (gap:8)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      spacing: 8,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              color: c.textSecondary,
+                            ),
+                            children: const [
+                              TextSpan(text: 'Having '),
+                              TextSpan(text: 'trouble', style: TextStyle(fontStyle: FontStyle.italic)),
+                              TextSpan(text: ' setting up your monitor?'),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          'Work through these steps one by one - most issues are fixed within the first two.',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: c.textTertiary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Cards section (gap:16)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      spacing: 16,
+                      children: [
+                        // Cards (gap:8)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          spacing: 8,
+                          children: [
+                            _TroubleshootCard(
+                              icon: SvgPicture.asset('assets/icons/utility/alert_mode.svg',
+                                colorFilter: ColorFilter.mode(c.brandSecondary, BlendMode.srcIn),
+                                width: 18, height: 18),
+                              title: 'Make sure the monitor is charging',
+                              description: 'The monitor must be plugged in throughout the entire setup. A low battery can interrupt the connection mid-process and cause it to fail.',
+                            ),
+                            _TroubleshootCard(
+                              icon: SvgPicture.asset('assets/icons/utility/bluetooth.svg',
+                                colorFilter: ColorFilter.mode(c.brandSecondary, BlendMode.srcIn),
+                                width: 18, height: 18),
+                              title: 'Enable Bluetooth and stay close',
+                              description: "Bluetooth must be enabled on your phone. Stay within arm's reach of the monitor for the full duration of setup - Bluetooth range drops fast through walls.",
+                            ),
+                            _TroubleshootCard(
+                              icon: SvgPicture.asset('assets/icons/utility/bell.svg',
+                                colorFilter: ColorFilter.mode(c.brandSecondary, BlendMode.srcIn),
+                                width: 18, height: 18),
+                              title: 'Check your WiFi network',
+                              description: 'The monitor only supports 2.4 GHz networks. If your router broadcasts both 2.4 GHz and 5 GHz under the same name, try connecting to the 2.4 GHz band separately. Also make sure your WiFi password is correct - it must be 8-63 characters.',
+                            ),
+                            _TroubleshootCard(
+                              icon: SvgPicture.asset('assets/icons/utility/refresh.svg',
+                                colorFilter: ColorFilter.mode(c.brandSecondary, BlendMode.srcIn),
+                                width: 18, height: 18),
+                              title: 'Reset the monitor to factory settings',
+                              description: "Hold the button on the monitor for 15 seconds until the LED starts blinking white - this means it's ready to pair again. Then start the setup from the beginning.\n\nNote: this does not affect your account or other devices.",
+                            ),
+                          ],
+                        ),
+                        // Footer
+                        Center(
+                          child: Text.rich(
+                            TextSpan(
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: c.textTertiary),
+                              children: [
+                                const TextSpan(text: 'Still stuck? '),
+                                TextSpan(
+                                  text: 'Contact support',
+                                  style: TextStyle(
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: c.textTertiary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _TroubleshootCard extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String title;
   final String description;
-  const _TroubleshootCard({required this.icon, required this.title, required this.description});
+
+  const _TroubleshootCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
+
   @override
   Widget build(BuildContext context) {
+    final c = context.color;
     return Container(
-      padding: const EdgeInsets.only(top: 12, left: 16, right: 12, bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: context.color.surfacePrimary,
+        color: c.surfacePrimary,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: context.color.borderNormal),
+        border: Border.all(color: c.borderNormal),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Icon(icon, size: 15, color: context.color.brandPrimary),
-          const SizedBox(width: 6),
-          Expanded(child: Text(title, style: Theme.of(context).textTheme.labelLarge)),
-        ]),
-        const SizedBox(height: 6),
-        Text(description, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: context.color.textTertiary, height: 1.6)),
-      ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              icon,
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(color: c.textSecondary),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            description,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: c.textTertiary,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
