@@ -124,26 +124,29 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
           )
         : PairDeviceBody(
             key: const ValueKey('foundStepMultiple'),
-            title: context.text.baby_monitors_name,
+            onBackButtonPressed: () =>
+                context.read<MockMonitorCubit>().startSetupFlow(),
+            title: 'Multiple Monitors found',
             description:
-                context.text.monitor_pair_select_monitor_to_connect_to,
+                'Look for the serial number on the back of your device to identify it.',
+            titleBottomPadding: 16,
             isLoading: state.isStillScanning,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(vertical: 24),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: state.devices
                     .map(
-                      (device) => GestureDetector(
-                        onTap: () =>
-                            context.read<MockMonitorCubit>().selectDevice(
-                              device,
-                            ),
+                      (device) => Padding(
+                        padding: const EdgeInsets.only(right: 16),
                         child: DevicePickCard(
                           imageAsset: 'assets/images/babymonitor_packshot.png',
                           serialNumber: device.serialNumber,
-                          label: 'Moonboon Monitor',
+                          onConnect: () =>
+                              context.read<MockMonitorCubit>().selectDevice(
+                                device,
+                              ),
                         ),
                       ),
                     )

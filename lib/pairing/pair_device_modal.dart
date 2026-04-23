@@ -120,7 +120,7 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
 
   String _bluetoothVideo(bool isDark) => switch (widget.motorType) {
     MotorType.basic   => isDark ? 'assets/videos/motor_basic_turn_on_bluetooth_dark.mov' : 'assets/videos/motor_basic_turn_on_bluetooth.mov',
-    MotorType.premium => isDark ? 'assets/videos/motor_turn_on_bluetooth_dark.mov' : 'assets/videos/motor_turn_on_bluetooth.mov',
+    MotorType.premium => isDark ? 'assets/videos/motor_premium_turn_on_bluetooth_dark.mov' : 'assets/videos/motor_premium_turn_on_bluetooth_light.mov',
   };
 
   // ── Step builders ─────────────────────────────────────────────────────────
@@ -289,30 +289,27 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
       MotorType.premium => 'assets/images/motor_premium_packshot.png',
     };
     const mockSerials = ['MB-1042', 'MB-2391'];
-    final motorLabel = switch (widget.motorType) {
-      MotorType.basic   => 'Moonboon Motor',
-      MotorType.premium => 'Moonboon Motor Premium',
-    };
     return PairDeviceBody(
       key: const ValueKey('foundMultiple'),
-      title: 'Motors found',
-      description: 'Select the motor you want to connect to.',
-      titleBottomPadding: 8,
+      onBackButtonPressed: () => context.read<MockMotorCubit>().goToPreviousStep(),
+      title: 'Multiple Motors found',
+      description: 'Look for the serial number on the back of your motor to identify it.',
+      titleBottomPadding: 16,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: List.generate(devices.length, (i) {
-            return GestureDetector(
-              onTap: () => context.read<MockMotorCubit>().connectToDevice(
-                devices[i],
-                friendlyName: devices[i],
-              ),
+            return Padding(
+              padding: const EdgeInsets.only(right: 16),
               child: DevicePickCard(
                 imageAsset: motorImage,
                 serialNumber: i < mockSerials.length ? mockSerials[i] : 'MB-000$i',
-                label: motorLabel,
+                onConnect: () => context.read<MockMotorCubit>().connectToDevice(
+                  devices[i],
+                  friendlyName: devices[i],
+                ),
               ),
             );
           }),
