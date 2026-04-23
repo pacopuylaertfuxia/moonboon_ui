@@ -3,6 +3,17 @@ import AVKit
 import Flutter
 import UIKit
 
+// MARK: - Method name constants
+
+private enum VideoMethod {
+  static let play             = "play"
+  static let pause            = "pause"
+  static let startPip         = "startPip"
+  static let stopPip          = "stopPip"
+  static let playStateChanged = "playStateChanged"
+  static let pipStateChanged  = "pipStateChanged"
+}
+
 // MARK: - Factory
 
 class NativeVideoPlayerFactory: NSObject, FlutterPlatformViewFactory {
@@ -39,6 +50,14 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
   private var pipController: AVPictureInPictureController?
   private var isPlaying = true
   private var channel: FlutterMethodChannel?
+  private var loopObserver: NSObjectProtocol?
+
+  deinit {
+    if let obs = loopObserver {
+      NotificationCenter.default.removeObserver(obs)
+    }
+    channel?.setMethodCallHandler(nil)
+  }
 
   init(frame: CGRect, messenger: FlutterBinaryMessenger) {
     super.init()
@@ -50,7 +69,6 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
     setupPlayer()
     setupPip()
     setupGesture()
-    setupAppLifecycleObservers()
 
     let ch = FlutterMethodChannel(
       name: "com.moonboon/video_player",
@@ -59,17 +77,17 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
     self.channel = ch
     ch.setMethodCallHandler { [weak self] call, result in
       switch call.method {
-      case "play":
+      case VideoMethod.play:
         self?.player?.play()
         self?.isPlaying = true
         result(nil)
-      case "pause":
+      case VideoMethod.pause:
         self?.player?.pause()
         self?.isPlaying = false
         result(nil)
-      case "startPip":
+      case VideoMethod.startPip:
         self?.startPip(result: result)
-      case "stopPip":
+      case VideoMethod.stopPip:
         self?.stopPipAnimated()
         result(nil)
       default:
@@ -95,7 +113,7 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
     let item = AVPlayerItem(url: url)
     let player = AVPlayer(playerItem: item)
     player.actionAtItemEnd = .none
-    NotificationCenter.default.addObserver(
+    loopObserver = NotificationCenter.default.addObserver(
       forName: .AVPlayerItemDidPlayToEndTime,
       object: item,
       queue: .main
@@ -126,18 +144,6 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
     let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
     hostView.addGestureRecognizer(tap)
     hostView.isUserInteractionEnabled = true
-  }
-
-  private func setupAppLifecycleObservers() {
-    NotificationCenter.default.addObserver(
-      self, selector: #selector(appDidBecomeActive),
-      name: UIApplication.didBecomeActiveNotification, object: nil
-    )
-  }
-
-  @objc private func appDidBecomeActive() {
-    guard let pip = pipController, pip.isPictureInPictureActive else { return }
-    pip.stopPictureInPicture()
   }
 
   // MARK: - PiP actions
@@ -186,7 +192,7 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
       player?.play()
       isPlaying = true
     }
-    channel?.invokeMethod("playStateChanged", arguments: isPlaying)
+    channel?.invokeMethod(VideoMethod.playStateChanged, arguments: isPlaying)
   }
 }
 
@@ -194,7 +200,7 @@ class NativeVideoPlayerView: NSObject, FlutterPlatformView {
 
 extension NativeVideoPlayerView: AVPictureInPictureControllerDelegate {
   func pictureInPictureControllerWillStartPictureInPicture(_ controller: AVPictureInPictureController) {
-    channel?.invokeMethod("pipStateChanged", arguments: true)
+    channel?.invokeMethod(VideoMethod.pipStateChanged, arguments: true)
   }
 
   func pictureInPictureControllerDidStopPictureInPicture(_ controller: AVPictureInPictureController) {
@@ -204,7 +210,7 @@ extension NativeVideoPlayerView: AVPictureInPictureControllerDelegate {
     if #available(iOS 14.2, *) {
       controller.canStartPictureInPictureAutomaticallyFromInline = false
     }
-    channel?.invokeMethod("pipStateChanged", arguments: false)
+    channel?.invokeMethod(VideoMethod.pipStateChanged, arguments: false)
   }
 
   func pictureInPictureController(

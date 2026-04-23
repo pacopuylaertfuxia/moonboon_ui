@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 
-/// Pulse rings expanding outward from the monitor illustration.
+/// Pulse rings expanding outward from a device illustration.
 class WifiRadarAnimation extends StatefulWidget {
   final double size;
+  final String? imageAsset;
 
-  const WifiRadarAnimation({super.key, this.size = 240});
+  const WifiRadarAnimation({
+    super.key,
+    this.size = 240,
+    this.imageAsset,
+  });
 
   @override
   State<WifiRadarAnimation> createState() => _WifiRadarAnimationState();
@@ -51,7 +56,8 @@ class _WifiRadarAnimationState extends State<WifiRadarAnimation>
                   maxWidth: widget.size * 0.7,
                 ),
                 child: Image.asset(
-                  'assets/illustrations/monitor/illustration_monitor_front.png',
+                  widget.imageAsset ??
+                      'assets/illustrations/monitor/illustration_monitor_front.png',
                   fit: BoxFit.contain,
                 ),
               ),

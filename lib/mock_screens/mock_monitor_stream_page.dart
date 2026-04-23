@@ -14,6 +14,15 @@ import '../setup_flow/component/noise_detection_body.dart';
 import '../theme/theme_colors.dart';
 import 'mock_monitor_settings_page.dart';
 
+abstract final class _VideoChannel {
+  static const name     = 'com.moonboon/video_player';
+  static const viewType = 'com.moonboon/native_video_player';
+  static const startPip          = 'startPip';
+  static const stopPip           = 'stopPip';
+  static const playStateChanged  = 'playStateChanged';
+  static const pipStateChanged   = 'pipStateChanged';
+}
+
 /// Mock of the live monitor stream page — token mapping from Figma node 416:2182.
 class MockMonitorStreamPage extends StatefulWidget {
   const MockMonitorStreamPage({super.key});
@@ -116,7 +125,6 @@ class _StreamBodyState extends State<_StreamBody> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.color;
     return CustomScrollView(
       slivers: [
         // Telemetry row — surfacePrimary bg + surfaceQuaternary border
@@ -138,7 +146,7 @@ class _StreamBodyState extends State<_StreamBody> {
         const SliverToBoxAdapter(child: SizedBox(height: 16)),
         // Firmware update card
         if (_showFirmwareCard) SliverToBoxAdapter(
-          child: _FirmwareUpdateCard(c: c, onDismiss: () => setState(() => _showFirmwareCard = false)),
+          child: _FirmwareUpdateCard(onDismiss: () => setState(() => _showFirmwareCard = false)),
         ),
         if (_showFirmwareCard) const SliverToBoxAdapter(child: SizedBox(height: 16)),
         // Notifications section header
@@ -147,7 +155,7 @@ class _StreamBodyState extends State<_StreamBody> {
             padding: const EdgeInsets.only(left: 24, right: 24, bottom: 8),
             child: Text(
               'Notifications',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(color: c.textPrimary),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(color: context.color.textPrimary),
             ),
           ),
         ),
@@ -174,7 +182,7 @@ class _VideoPreview extends StatefulWidget {
 
 class _VideoPreviewState extends State<_VideoPreview>
     with SingleTickerProviderStateMixin {
-  static const _channel = MethodChannel('com.moonboon/video_player');
+  static const _channel = MethodChannel(_VideoChannel.name);
 
   bool _isPlaying = true;
   bool _isPip = false;
@@ -191,12 +199,12 @@ class _VideoPreviewState extends State<_VideoPreview>
     _iconOpacity = CurvedAnimation(parent: _iconCtrl, curve: Curves.easeOut);
 
     _channel.setMethodCallHandler((call) async {
-      if (call.method == 'playStateChanged') {
+      if (call.method == _VideoChannel.playStateChanged) {
         setState(() => _isPlaying = call.arguments as bool);
         await _iconCtrl.forward(from: 0);
         await Future.delayed(const Duration(milliseconds: 700));
         if (mounted) await _iconCtrl.reverse();
-      } else if (call.method == 'pipStateChanged') {
+      } else if (call.method == _VideoChannel.pipStateChanged) {
         if (mounted) setState(() => _isPip = call.arguments as bool);
       }
     });
@@ -212,9 +220,9 @@ class _VideoPreviewState extends State<_VideoPreview>
   Future<void> _togglePip() async {
     try {
       if (_isPip) {
-        await _channel.invokeMethod('stopPip');
+        await _channel.invokeMethod(_VideoChannel.stopPip);
       } else {
-        await _channel.invokeMethod('startPip');
+        await _channel.invokeMethod(_VideoChannel.startPip);
       }
     } catch (e) {
       debugPrint('[PiP] error: $e');
@@ -223,7 +231,6 @@ class _VideoPreviewState extends State<_VideoPreview>
 
   @override
   Widget build(BuildContext context) {
-    final c = context.color;
     return AspectRatio(
       aspectRatio: 16 / 9,
       child: Stack(
@@ -232,14 +239,14 @@ class _VideoPreviewState extends State<_VideoPreview>
           // Camera feed — native video player (sample.mov from Runner bundle)
           if (Platform.isIOS)
             const UiKitView(
-              viewType: 'com.moonboon/native_video_player',
+              viewType: _VideoChannel.viewType,
               creationParamsCodec: StandardMessageCodec(),
             )
           else
             Container(
               color: Colors.black,
               child: Center(
-                child: Icon(Icons.videocam_off_rounded, color: c.textTertiary, size: 40),
+                child: Icon(Icons.videocam_off_rounded, color: context.color.textTertiary, size: 40),
               ),
             ),
           // Play/pause icon flash on tap
@@ -267,7 +274,7 @@ class _VideoPreviewState extends State<_VideoPreview>
             top: 0,
             bottom: 0,
             child: Center(
-              child: _VideoButtonPill(c: c, isPip: _isPip, onPipTap: _togglePip),
+              child: _VideoButtonPill(isPip: _isPip, onPipTap: _togglePip),
             ),
           ),
         ],
@@ -277,13 +284,13 @@ class _VideoPreviewState extends State<_VideoPreview>
 }
 
 class _VideoButtonPill extends StatelessWidget {
-  final ThemeColors c;
   final bool isPip;
   final VoidCallback onPipTap;
-  const _VideoButtonPill({required this.c, required this.isPip, required this.onPipTap});
+  const _VideoButtonPill({required this.isPip, required this.onPipTap});
 
   @override
   Widget build(BuildContext context) {
+    final c = context.color;
     return ClipRRect(
       borderRadius: BorderRadius.circular(100),
       child: BackdropFilter(
@@ -302,11 +309,10 @@ class _VideoButtonPill extends StatelessWidget {
                     ? 'assets/icons/fullscreen/minimize.svg'
                     : 'assets/icons/fullscreen/maximize.svg',
                 isFirst: true,
-                c: c,
                 onTap: onPipTap,
               ),
-              _PillButton(assetPath: 'assets/icons/volume/volume_on.svg', c: c),
-              _PillButton(assetPath: 'assets/icons/controls/camera.svg', isLast: true, c: c),
+              const _PillButton(assetPath: 'assets/icons/volume/volume_on.svg'),
+              const _PillButton(assetPath: 'assets/icons/controls/camera.svg', isLast: true),
             ],
           ),
         ),
@@ -319,11 +325,9 @@ class _PillButton extends StatelessWidget {
   final String assetPath;
   final bool isFirst;
   final bool isLast;
-  final ThemeColors c;
   final VoidCallback? onTap;
   const _PillButton({
     required this.assetPath,
-    required this.c,
     this.isFirst = false,
     this.isLast = false,
     this.onTap,
@@ -341,7 +345,7 @@ class _PillButton extends StatelessWidget {
         assetPath,
         width: 24,
         height: 24,
-        colorFilter: ColorFilter.mode(c.textPrimary, BlendMode.srcIn),
+        colorFilter: ColorFilter.mode(context.color.textPrimary, BlendMode.srcIn),
       ),
     );
     if (onTap != null) {
@@ -354,12 +358,12 @@ class _PillButton extends StatelessWidget {
 // ── Firmware update card ─────────────────────────────────────────────────────
 
 class _FirmwareUpdateCard extends StatelessWidget {
-  final ThemeColors c;
   final VoidCallback onDismiss;
-  const _FirmwareUpdateCard({required this.c, required this.onDismiss});
+  const _FirmwareUpdateCard({required this.onDismiss});
 
   @override
   Widget build(BuildContext context) {
+    final c = context.color;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -497,7 +501,7 @@ class _NotificationCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                _NotificationIcon(type: n.type, c: c),
+                _NotificationIcon(type: n.type),
                 Expanded(
                   child: Text(
                     n.title,
@@ -514,7 +518,7 @@ class _NotificationCard extends StatelessWidget {
               n.body,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: c.textTertiary),
             ),
-            if (n.isIntelligent) _FeedbackRow(c: c) else const SizedBox(height: 8),
+            if (n.isIntelligent) const _FeedbackRow() else const SizedBox(height: 8),
           ],
         ),
       ),
@@ -524,8 +528,7 @@ class _NotificationCard extends StatelessWidget {
 
 class _NotificationIcon extends StatelessWidget {
   final String type;
-  final ThemeColors c;
-  const _NotificationIcon({required this.type, required this.c});
+  const _NotificationIcon({required this.type});
 
   @override
   Widget build(BuildContext context) {
@@ -543,15 +546,14 @@ class _NotificationIcon extends StatelessWidget {
         icon,
         width: 18,
         height: 18,
-        colorFilter: ColorFilter.mode(c.brandSecondary, BlendMode.srcIn),
+        colorFilter: ColorFilter.mode(context.color.brandSecondary, BlendMode.srcIn),
       ),
     );
   }
 }
 
 class _FeedbackRow extends StatelessWidget {
-  final ThemeColors c;
-  const _FeedbackRow({required this.c});
+  const _FeedbackRow();
 
   @override
   Widget build(BuildContext context) {
@@ -559,8 +561,8 @@ class _FeedbackRow extends StatelessWidget {
       children: [
         Text('Was this accurate?', style: _getLabelStyle(context)),
         const SizedBox(width: 8),
-        _ThumbButton(assetPath: 'assets/icons/feedback/positive.svg', c: c),
-        _ThumbButton(assetPath: 'assets/icons/feedback/negative.svg', c: c),
+        const _ThumbButton(assetPath: 'assets/icons/feedback/positive.svg'),
+        const _ThumbButton(assetPath: 'assets/icons/feedback/negative.svg'),
       ],
     );
   }
@@ -568,8 +570,7 @@ class _FeedbackRow extends StatelessWidget {
 
 class _ThumbButton extends StatelessWidget {
   final String assetPath;
-  final ThemeColors c;
-  const _ThumbButton({required this.assetPath, required this.c});
+  const _ThumbButton({required this.assetPath});
 
   @override
   Widget build(BuildContext context) {
@@ -582,7 +583,7 @@ class _ThumbButton extends StatelessWidget {
           assetPath,
           width: 20,
           height: 20,
-          colorFilter: ColorFilter.mode(c.borderStrong, BlendMode.srcIn),
+          colorFilter: ColorFilter.mode(context.color.borderStrong, BlendMode.srcIn),
         ),
       ),
     );

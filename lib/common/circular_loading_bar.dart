@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import '../theme/theme_colors.dart';
 
 class CircularLoadingBar extends StatelessWidget {
   final double size;
-  final Color color;
+  final Color? color;
   final double strokeWidth;
 
   const CircularLoadingBar({
     super.key,
     this.size = 24,
-    this.color = Colors.grey,
+    this.color,
     this.strokeWidth = 3,
   });
 
@@ -16,7 +17,7 @@ class CircularLoadingBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return CircularProgressIndicator(
       strokeCap: StrokeCap.round,
-      color: color,
+      color: color ?? context.color.brandPrimary,
       strokeWidth: strokeWidth,
       constraints: BoxConstraints.tightFor(width: size, height: size),
     );
