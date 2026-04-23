@@ -71,13 +71,7 @@ class _TypewriterCyclingTextState extends State<TypewriterCyclingText> {
       height: 28,
       child: Text(
         _displayedText,
-        style: widget.style ??
-            const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              height: 28 / 18,
-              color: Color(0xFF464545),
-            ),
+        style: widget.style,
       ),
     );
   }
