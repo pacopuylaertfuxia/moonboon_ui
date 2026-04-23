@@ -224,8 +224,8 @@ class _VideoPreviewState extends State<_VideoPreview>
   @override
   Widget build(BuildContext context) {
     final c = context.color;
-    return SizedBox(
-      height: 226,
+    return AspectRatio(
+      aspectRatio: 16 / 9,
       child: Stack(
         fit: StackFit.expand,
         children: [
