@@ -51,8 +51,8 @@ class DevicePickCard extends StatelessWidget {
               child: Transform.rotate(
                 angle: math.pi / 6, // 30°
                 child: SizedBox(
-                  width: 402.79,
-                  height: 503.91,
+                  width: 302.09,
+                  height: 377.93,
                   child: Image.asset(imageAsset, fit: BoxFit.contain),
                 ),
               ),

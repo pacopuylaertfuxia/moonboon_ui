@@ -31,6 +31,8 @@ class MockMotorCubit extends Cubit<PairDeviceState> {
       emit(PairDeviceStatePowerUp());
     } else if (s is PairDeviceStateTurnOnBluetooth) {
       emit(PairDeviceStateTurnOn());
+    } else if (s is PairDeviceStateDeviceSelected) {
+      emit(PairDeviceStateFound(_mockDevices));
     } else if (s is PairDeviceStateBluetoothPermission ||
         s is PairDeviceStateBluetoothPermissionDenied ||
         s is PairDeviceStateScanningStep ||
@@ -38,6 +40,8 @@ class MockMotorCubit extends Cubit<PairDeviceState> {
       emit(PairDeviceStateTurnOnBluetooth());
     }
   }
+
+  void selectDevice(String deviceName) => emit(PairDeviceStateDeviceSelected(deviceName));
 
   void connectToDevice(String deviceName, {String friendlyName = ''}) {
     final name = friendlyName.isEmpty ? deviceName : friendlyName;

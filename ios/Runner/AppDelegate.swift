@@ -52,14 +52,6 @@ import UserNotifications
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
 
-    // ── Native video platform view ─────────────────────────────────────────
-    if let videoRegistrar = engineBridge.pluginRegistry.registrar(forPlugin: "NativeVideoPlayer") {
-      videoRegistrar.register(
-        NativeVideoPlayerFactory(messenger: videoRegistrar.messenger()),
-        withId: "com.moonboon/native_video_player"
-      )
-    }
-
     guard let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "LiveActivity") else { return }
 
     // ── Method channel ─────────────────────────────────────────────────────

@@ -39,6 +39,11 @@ final class PairDeviceStateFound extends PairDeviceState {
   PairDeviceStateFound(this.deviceNames);
 }
 
+final class PairDeviceStateDeviceSelected extends PairDeviceState {
+  final String deviceName;
+  PairDeviceStateDeviceSelected(this.deviceName);
+}
+
 final class PairDeviceStatePaired extends PairDeviceState {}
 
 final class PairDeviceStateGetNotified extends PairDeviceState {}

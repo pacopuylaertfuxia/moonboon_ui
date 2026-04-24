@@ -44,6 +44,7 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
     PairDeviceStateBluetoothPermissionDenied() => 3,
     PairDeviceStateScanningStep() => 4,
     PairDeviceStateFound() => 4,
+    PairDeviceStateDeviceSelected() => 4,
     PairDeviceStateLoading() => 5,
     PairDeviceStateActivating() => 5,
     _ => null,
@@ -97,6 +98,7 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
         PairDeviceStateFound s => s.deviceNames.length == 1
             ? _buildSingleFoundStep(context, s.deviceNames.first)
             : _buildMultipleFoundStep(context, s.deviceNames),
+        PairDeviceStateDeviceSelected s => _buildSingleFoundStep(context, s.deviceName),
         PairDeviceStatePaired() => _buildPairedStep(context),
         PairDeviceStateGetNotified() => _buildGetNotifiedStep(context),
         PairDeviceStateError s => _buildErrorStep(context, s.message),
@@ -306,10 +308,7 @@ class _PairDeviceModalState extends State<PairDeviceModal> {
               child: DevicePickCard(
                 imageAsset: motorImage,
                 serialNumber: i < mockSerials.length ? mockSerials[i] : 'MB-000$i',
-                onConnect: () => context.read<MockMotorCubit>().connectToDevice(
-                  devices[i],
-                  friendlyName: devices[i],
-                ),
+                onConnect: () => context.read<MockMotorCubit>().selectDevice(devices[i]),
               ),
             );
           }),
