@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../theme/theme_colors.dart';
 
 /// Luminance-based overlay color — matches production color_utils.dart
@@ -100,7 +99,7 @@ ButtonStyle getButtonStyle(
       return OutlinedButton.styleFrom(
         backgroundColor:
             backgroundColor ??
-            mutedApricot.withValues(alpha: disabled ? 0.5 : 1.0),
+            context.color.surfaceTertiary.withValues(alpha: disabled ? 0.5 : 1.0),
         foregroundColor: Theme.of(context).colorScheme.primary,
         minimumSize: minSize,
         shape: RoundedRectangleBorder(borderRadius: borderRadius),

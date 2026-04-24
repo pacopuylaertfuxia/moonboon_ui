@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'mock/mock_monitor_cubit.dart';
 import 'mock/mock_motor_cubit.dart';
+import 'mock_screens/mock_monitor_stream_page.dart';
 import 'pairing/motor_type.dart';
 import 'pairing/pair_device_modal.dart';
 import 'setup_flow/bloc/final_configuration_step.dart';
@@ -42,12 +43,7 @@ class _MoonboonUIAppState extends State<MoonboonUIApp> {
       theme: buildLightTheme(),
       darkTheme: buildDarkTheme(),
       themeMode: _themeMode,
-      home: _PlaygroundPage(
-        themeMode: _themeMode,
-        onToggleTheme: () => setState(() {
-          _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-        }),
-      ),
+      home: const MockMonitorStreamPage(),
     );
   }
 }
