@@ -104,18 +104,6 @@ class _LauncherPage extends StatelessWidget {
 
               // Flow tiles
               _FlowTile(
-                label: 'Motor Basic',
-                subtitle: 'Power up → Name → Activate → Done',
-                onTap: () => _openMotorFlow(context, MotorType.basic),
-              ),
-              const SizedBox(height: 12),
-              _FlowTile(
-                label: 'Motor Premium',
-                subtitle: 'Power up → Knobs → Bluetooth → Activate → Done',
-                onTap: () => _openMotorFlow(context, MotorType.premium),
-              ),
-              const SizedBox(height: 12),
-              _FlowTile(
                 label: 'Monitor',
                 subtitle: 'Charge → Power up → WiFi → Provisioning → Done',
                 onTap: () => _openMonitorFlow(context),

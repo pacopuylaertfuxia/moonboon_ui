@@ -194,8 +194,6 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
       asset: 'assets/illustrations/monitor/illustration_monitor_front.png',
       assetBottomPadding: 0,
       description: context.text.monitor_setup_charge_device_description,
-      primaryButtonLabel: context.text.next,
-      onPrimaryButtonPressed: () => context.read<MockMonitorCubit>().goToSearching(),
       child: const ChargingAnimation(),
     );
   }
@@ -436,10 +434,8 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
     return KeyedSubtree(
       key: const ValueKey('soundMonitoringConsentStep'),
       child: SoundMonitoringConsentBody(
-        onGiveConsent: () =>
+        onContinue: () =>
             context.read<MockMonitorCubit>().giveSoundMonitoringConsent(),
-        onDisable: () =>
-            context.read<MockMonitorCubit>().disableSoundMonitoring(),
       ),
     );
   }
