@@ -21,6 +21,8 @@ import 'setup_text_field.dart';
 import 'component/noise_detection_body.dart';
 import 'component/sound_monitoring_consent_body.dart';
 import 'component/streaming_consent_body.dart';
+import 'component/welcome_gift_screen.dart';
+import '../common/monitor_troubleshoot_page.dart';
 
 class MonitorProvisioningPage extends StatefulWidget {
   final VoidCallback? onMonitorAdded;
@@ -62,11 +64,23 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<MockMonitorCubit, MonitorState>(
+    return BlocConsumer<MockMonitorCubit, MonitorState>(
+      listenWhen: (_, curr) => curr is MonitorWelcomeGiftStep,
+      listener: (context, state) {
+        final cubit = context.read<MockMonitorCubit>();
+        Navigator.of(context).push(MaterialPageRoute<void>(
+          builder: (_) => WelcomeGiftScreen(
+            onGetStarted: () {
+              Navigator.of(context).pop();
+              cubit.proceedFromWelcomeGift();
+            },
+          ),
+        ));
+      },
       builder: (context, state) {
         final child = switch (state) {
           MonitorChargeStep() => _buildChargeMonitorStep(context),
-          MonitorSearchingStep() => _buildSearchingStep(context),
+          MonitorSearchingStep() => _buildChargeMonitorStep(context),
           MonitorFound s => _buildFound(context, s),
           MonitorAlreadyTaken() => _buildAlreadyTaken(context),
           MonitorWiFiPasswordInputError s => _buildWiFiPasswordInputStep(
@@ -188,15 +202,26 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
   }
 
   Widget _buildChargeMonitorStep(BuildContext context) {
+    final keyboardUp = MediaQuery.of(context).viewInsets.bottom > 0;
     return PairDeviceBody(
       key: const ValueKey('chargeMonitorStep'),
       title: context.text.monitor_setup_charge_device,
-      asset: 'assets/illustrations/monitor/illustration_monitor_front.png',
-      assetBottomPadding: 0,
       description: context.text.monitor_setup_charge_device_description,
-      primaryButtonLabel: context.text.next,
-      onPrimaryButtonPressed: () => context.read<MockMonitorCubit>().goToSearching(),
-      child: const ChargingAnimation(),
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.topCenter,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            WifiRadarAnimation(size: keyboardUp ? 143 : 294),
+            if (!keyboardUp) ...[
+              const SizedBox(height: 12),
+              const ChargingAnimation(height: 160),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -204,7 +229,7 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
     return PairDeviceBody(
       key: const ValueKey('searchingStep'),
       title: context.text.motor_pairing_looking,
-      child: const WifiRadarAnimation(size: 270),
+      child: const WifiRadarAnimation(size: 294),
     );
   }
 
@@ -288,6 +313,7 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
           context.read<MockMonitorCubit>().startSetupFlow();
         }
       },
+      onTroubleshoot: () => openMonitorTroubleshootPage(context),
     );
   }
 
@@ -390,7 +416,7 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 8),
-          const WifiRadarAnimation(size: 270),
+          const WifiRadarAnimation(size: 294),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -436,7 +462,7 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
     return KeyedSubtree(
       key: const ValueKey('soundMonitoringConsentStep'),
       child: SoundMonitoringConsentBody(
-        onGiveConsent: () =>
+        onContinue: () =>
             context.read<MockMonitorCubit>().giveSoundMonitoringConsent(),
         onDisable: () =>
             context.read<MockMonitorCubit>().disableSoundMonitoring(),
@@ -459,6 +485,7 @@ class _MonitorProvisioningPageState extends State<MonitorProvisioningPage> {
       ),
     );
   }
+
 
   Widget _buildStreamingConsentStep(BuildContext context) {
     return KeyedSubtree(

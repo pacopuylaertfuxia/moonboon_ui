@@ -3,12 +3,12 @@ import '../../common/button.dart';
 import '../../theme/theme_colors.dart';
 
 class SoundMonitoringConsentBody extends StatelessWidget {
-  final VoidCallback onGiveConsent;
+  final VoidCallback onContinue;
   final VoidCallback onDisable;
 
   const SoundMonitoringConsentBody({
     super.key,
-    required this.onGiveConsent,
+    required this.onContinue,
     required this.onDisable,
   });
 
@@ -52,9 +52,7 @@ class SoundMonitoringConsentBody extends StatelessWidget {
                     ),
                     TextSpan(
                       text: 'privacy settings.',
-                      style: TextStyle(
-                        decoration: TextDecoration.underline,
-                      ),
+                      style: TextStyle(decoration: TextDecoration.underline),
                     ),
                   ],
                 ),
@@ -64,9 +62,9 @@ class SoundMonitoringConsentBody extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: EdgeInsets.fromLTRB(16, 24, 16, 0),
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
           child: Button(
-            onPressed: onGiveConsent,
+            onPressed: onContinue,
             buttonLabel: Text(
               'Give consent',
               style: Theme.of(context).textTheme.titleMedium,

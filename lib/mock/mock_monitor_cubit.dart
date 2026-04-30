@@ -34,8 +34,7 @@ class MockMonitorCubit extends Cubit<MonitorState> {
       emit(ChangeWiFiInstructionsStep());
     } else {
       emit(MonitorChargeStep());
-      // Auto-find the monitor after 2.5s
-      _delay(2500, () {
+      _delay(4000, () {
         emit(MonitorFound(
           [_mockMonitor],
           friendlyName: friendlyName ?? _mockMonitorName,
@@ -131,19 +130,46 @@ class MockMonitorCubit extends Cubit<MonitorState> {
 
   void giveSoundMonitoringConsent() => emit(MonitorNoiseDetectionStep());
 
-  void disableSoundMonitoring() => emit(MonitorNoiseDetectionStep());
+  void disableSoundMonitoring() => emit(MonitorStreamingConsentStep());
 
   void setNoiseDetectionLevel(NoiseDetectionLevel level, bool onlyBabyCries) {
     emit(MonitorStreamingConsentStep());
   }
 
-  void giveStreamingConsent() {
+  void giveStreamingConsent() => emit(MonitorWelcomeGiftStep());
+
+  void proceedFromWelcomeGift() {
     if (!isClosed) close();
   }
 
   void refuseStreamingConsent() {
     if (!isClosed) close();
   }
+
+  // ── Jump-to methods (for individual step entry points) ────────
+
+  void showChargeStep() => emit(MonitorChargeStep());
+
+  void showSearchingStep() {
+    emit(MonitorSearchingStep());
+    _delay(2500, () => emit(MonitorFound([_mockMonitor], friendlyName: _mockMonitorName)));
+  }
+
+  void showFoundStep() => emit(MonitorFound([_mockMonitor], friendlyName: _mockMonitorName));
+
+  void showWifiListStep() => emit(MonitorScanningWiFiResult(_mockMonitorName, _mockWifiNetworks));
+
+  void showWifiPasswordStep() => emit(MonitorWiFiPasswordInput('Home WiFi'));
+
+  void showProvisioningStep() => _runFinalConfiguration(_mockMonitorName);
+
+  void showConsentStep() => emit(MonitorSoundMonitoringConsentStep());
+
+  void showNoiseDetectionStep() => emit(MonitorNoiseDetectionStep());
+
+  void showStreamingConsentStep() => emit(MonitorStreamingConsentStep());
+
+  void showWelcomeGiftStep() => emit(MonitorWelcomeGiftStep());
 
   // ── Error simulation (for demo/testing) ───────────────────────
 

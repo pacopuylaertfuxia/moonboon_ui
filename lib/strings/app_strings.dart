@@ -47,17 +47,17 @@ class _Strings {
   String get monitor_pair_already_in_use_error_description =>
       'This monitor is already connected to another account.';
   String get monitor_pair_already_in_use_error_button => 'Got it';
-  String get monitor_pair_not_found_error_title => 'Monitor not found';
+  String get monitor_pair_not_found_error_title => 'Something went wrong';
   String get monitor_pair_not_found_error_description =>
-      'Make sure your monitor is powered on and nearby.';
+      'Ensure your device is charging while connecting. Also, set up in an area with a strong Wi-Fi connection and keep your Bluetooth enabled.';
   String get monitor_pair_not_found_while_changing_wifi_error_title =>
-      'Monitor not found';
+      'Something went wrong';
   String get monitor_pair_not_found_while_changing_wifi_error_description =>
-      'Make sure your monitor is powered on and in range.';
+      'Ensure your device is charging while connecting. Also, set up in an area with a strong Wi-Fi connection and keep your Bluetooth enabled.';
   String get monitor_pair_final_configuration_error_title =>
-      'Setup failed';
+      'Something went wrong';
   String get monitor_pair_final_configuration_error_description =>
-      'Something went wrong during setup. Please try again.';
+      'Ensure your device is charging while connecting. Also, set up in an area with a strong Wi-Fi connection and keep your Bluetooth enabled.';
   String get monitor_pair_bluetooth_off_error_description =>
       'Please enable Bluetooth and try again.';
   String get monitor_pair_unable_to_connect_to_wifi_error_description =>

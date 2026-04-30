@@ -58,7 +58,7 @@ ThemeData buildThemeWithColors(ThemeColors colors, Brightness brightness) {
 ThemeData buildLightTheme() =>
     buildThemeWithColors(ThemeColors.light, Brightness.light);
 ThemeData buildDarkTheme() =>
-    buildThemeWithColors(ThemeColors.dark, Brightness.dark);
+    buildThemeWithColors(ThemeColors.darkVariantC, Brightness.dark);
 
 TextTheme _buildTextTheme(ThemeColors colors) {
   return TextTheme(

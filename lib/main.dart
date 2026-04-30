@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'common/device_radius.dart';
+import 'common/firmware_update_sheet.dart';
 import 'common/modal_sheet.dart';
+import 'common/monitor_troubleshoot_page.dart';
 import 'mock/mock_monitor_cubit.dart';
-import 'mock/mock_motor_cubit.dart';
-import 'pairing/motor_type.dart';
-import 'pairing/pair_device_modal.dart';
+import 'setup_flow/bloc/setup_error_type.dart';
 import 'setup_flow/monitor_provisioning_page.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_colors.dart';
@@ -30,7 +30,7 @@ class _MoonboonUIAppState extends State<MoonboonUIApp> {
   Widget build(BuildContext context) {
     final colors = _isDark ? ThemeColors.darkVariantC : ThemeColors.light;
     return MaterialApp(
-      title: 'Moonboon Setup Flows',
+      title: 'Moonboon Monitor Setup',
       debugShowCheckedModeBanner: false,
       theme: buildThemeWithColors(colors, _isDark ? Brightness.dark : Brightness.light),
       themeMode: ThemeMode.light,
@@ -55,8 +55,8 @@ class _LauncherPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: context.color.surfacePrimary,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 48),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -73,7 +73,7 @@ class _LauncherPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Setup Flows',
+                        'Monitor Setup',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: context.color.textSecondary,
                         ),
@@ -100,28 +100,108 @@ class _LauncherPage extends StatelessWidget {
                 ],
               ),
 
-              const Spacer(),
+              const SizedBox(height: 40),
 
-              // Flow tiles
-              _FlowTile(
-                label: 'Motor Basic',
-                subtitle: 'Power up → Name → Activate → Done',
-                onTap: () => _openMotorFlow(context, MotorType.basic),
-              ),
+              // ── Setup flow ───────────────────────────────────────────────
+              _SectionLabel(label: 'Setup flow'),
               const SizedBox(height: 12),
               _FlowTile(
-                label: 'Motor Premium',
-                subtitle: 'Power up → Knobs → Bluetooth → Activate → Done',
-                onTap: () => _openMotorFlow(context, MotorType.premium),
-              ),
-              const SizedBox(height: 12),
-              _FlowTile(
-                label: 'Monitor',
-                subtitle: 'Charge → Power up → WiFi → Provisioning → Done',
+                label: 'Full monitor flow',
+                subtitle: 'Charge → Search → Found → WiFi → Provisioning → Consent → Done',
                 onTap: () => _openMonitorFlow(context),
               ),
 
-              const Spacer(),
+              const SizedBox(height: 32),
+
+              // ── Setup steps ──────────────────────────────────────────────
+              _SectionLabel(label: 'Setup steps'),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Charge device',
+                subtitle: 'Plug in and power on the monitor before connecting',
+                onTap: () => _openStep(context, (c) => c.showChargeStep()),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Searching for monitor',
+                subtitle: 'Bluetooth scan — auto-advances to Found after 2.5 s',
+                onTap: () => _openStep(context, (c) => c.showSearchingStep()),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Monitor found',
+                subtitle: 'Name entry — tap Connect to continue',
+                onTap: () => _openStep(context, (c) => c.showFoundStep()),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'WiFi networks',
+                subtitle: 'Network list — tap a network to enter password',
+                onTap: () => _openStep(context, (c) => c.showWifiListStep()),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'WiFi password',
+                subtitle: 'Password input for "Home WiFi"',
+                onTap: () => _openStep(context, (c) => c.showWifiPasswordStep()),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Provisioning',
+                subtitle: 'Progress states — connecting, uploading, firmware check',
+                onTap: () => _openStep(context, (c) => c.showProvisioningStep()),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Sound monitoring consent',
+                subtitle: 'Enable or disable sound monitoring',
+                onTap: () => _openStep(context, (c) => c.showConsentStep()),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Noise detection',
+                subtitle: 'Sensitivity slider — set detection level',
+                onTap: () => _openStep(context, (c) => c.showNoiseDetectionStep()),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Streaming consent',
+                subtitle: 'Allow audio streaming for remote monitoring',
+                onTap: () => _openStep(context, (c) => c.showStreamingConsentStep()),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Welcome gift',
+                subtitle: 'Moonboon Plus onboarding screen',
+                onTap: () => _openStep(context, (c) => c.showWelcomeGiftStep()),
+              ),
+
+              const SizedBox(height: 32),
+
+              // ── Modals & states ──────────────────────────────────────────
+              _SectionLabel(label: 'Modals & States'),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Firmware update',
+                subtitle: 'Sheet — update now vs. continue without updating',
+                onTap: () => showFirmwareUpdateSheet(
+                  context,
+                  onUpdate: () {},
+                  onContinueWithout: () {},
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Something went wrong',
+                subtitle: 'Error state with retry + troubleshoot link',
+                onTap: () => _openMonitorFlow(context, simulateError: true),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Troubleshoot guide',
+                subtitle: 'Full-screen guide — charging, Bluetooth, WiFi, reset',
+                onTap: () => openMonitorTroubleshootPage(context),
+              ),
             ],
           ),
         ),
@@ -129,24 +209,38 @@ class _LauncherPage extends StatelessWidget {
     );
   }
 
-  void _openMotorFlow(BuildContext context, MotorType motorType) {
+  /// Opens the full connected monitor provisioning flow.
+  void _openMonitorFlow(BuildContext context, {bool simulateError = false}) {
     _openSetupSheet(
       context,
       child: (ctx) => BlocProvider(
-        create: (_) => MockMotorCubit(),
+        create: (_) {
+          final cubit = MockMonitorCubit();
+          if (simulateError) {
+            cubit.simulateError(SetupErrorType.monitorNotFound);
+          } else {
+            cubit.checkCurrentUser();
+          }
+          return cubit;
+        },
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height - 60),
-          child: PairDeviceModal(motorType: motorType),
+          child: const MonitorProvisioningPage(),
         ),
       ),
     );
   }
 
-  void _openMonitorFlow(BuildContext context) {
+  /// Opens the monitor setup sheet with the cubit jumped to a specific step.
+  void _openStep(BuildContext context, void Function(MockMonitorCubit) jumpTo) {
     _openSetupSheet(
       context,
       child: (ctx) => BlocProvider(
-        create: (_) => MockMonitorCubit()..checkCurrentUser(),
+        create: (_) {
+          final cubit = MockMonitorCubit();
+          jumpTo(cubit);
+          return cubit;
+        },
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height - 60),
           child: const MonitorProvisioningPage(),
@@ -196,6 +290,25 @@ class _LauncherPage extends StatelessWidget {
   }
 }
 
+// ── Section label ─────────────────────────────────────────────────────────────
+
+class _SectionLabel extends StatelessWidget {
+  final String label;
+
+  const _SectionLabel({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label.toUpperCase(),
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        color: context.color.textTertiary,
+        letterSpacing: 1.2,
+      ),
+    );
+  }
+}
+
 // ── Flow tile ─────────────────────────────────────────────────────────────────
 
 class _FlowTile extends StatelessWidget {
@@ -211,7 +324,7 @@ class _FlowTile extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         decoration: BoxDecoration(
           color: context.color.surfaceTertiary.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(24),

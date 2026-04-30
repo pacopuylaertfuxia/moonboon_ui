@@ -63,6 +63,8 @@ final class MonitorSoundMonitoringConsentStep extends MonitorState {}
 
 final class MonitorStreamingConsentStep extends MonitorState {}
 
+final class MonitorWelcomeGiftStep extends MonitorState {}
+
 final class MonitorNoiseDetectionStep extends MonitorState {}
 
 final class MonitorProvisioningSuccess extends MonitorState {

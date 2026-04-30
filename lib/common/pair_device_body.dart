@@ -285,11 +285,15 @@ class PairDeviceErrorBody extends StatelessWidget {
             spacing: 12,
             children: [
               Padding(
-                padding: const EdgeInsets.only(top: 12),
+                padding: const EdgeInsets.only(top: 44),
                 child: Column(
                   spacing: 24,
                   children: [
-                    Image.asset('assets/crying_baby.png', height: 92),
+                    SvgPicture.asset(
+                      'assets/icons/baby_emotions_crying.svg',
+                      height: 92,
+                      colorFilter: ColorFilter.mode(context.color.brandPrimary, BlendMode.srcIn),
+                    ),
                     Text(
                       title,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
