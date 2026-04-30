@@ -70,11 +70,6 @@ class _SetupTextFieldState extends State<SetupTextField> {
     widget.controller.addListener(_onControllerChanged);
     _isObscured = widget.isObscured;
     _isValid = widget.validationRule(widget.controller.textController.text);
-    if (widget.withInputField) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _focusNode.requestFocus();
-      });
-    }
   }
 
   @override
@@ -96,7 +91,13 @@ class _SetupTextFieldState extends State<SetupTextField> {
   Widget build(BuildContext context) {
     final isLoading = widget.controller.isLoading;
     final isReadOnly = widget.controller.isReadOnly;
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Light: overlayNavButton = creme@90% (Figma spec for input fill)
+    // Dark: surfaceQuaternary = #3D352C (elevated surface, visible on near-black bg)
+    final fillColor = isDark
+        ? context.color.surfaceQuaternary
+        : context.color.overlayNavButton;
 
     return Column(
       children: [
@@ -109,11 +110,10 @@ class _SetupTextFieldState extends State<SetupTextField> {
             controller: widget.controller.textController,
             obscureText: _isObscured,
             textCapitalization: widget.textCapitalization,
+            style: TextStyle(color: context.color.textSecondary),
             decoration: InputDecoration(
               hintText: widget.hintText,
-              fillColor: isDarkMode
-                  ? context.color.surfaceSecondary
-                  : context.color.surfaceSecondary,
+              fillColor: fillColor,
               filled: true,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(100),
