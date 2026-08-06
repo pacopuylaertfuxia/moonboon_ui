@@ -6,10 +6,19 @@ import 'common/firmware_update_sheet.dart';
 import 'common/modal_sheet.dart';
 import 'common/monitor_troubleshoot_page.dart';
 import 'mock/mock_monitor_cubit.dart';
+import 'mock_screens/baby_sleep_home_page.dart';
+import 'mock_screens/mock_last_night_page.dart';
+import 'mock_screens/mock_monitor_stream_page.dart';
+import 'mock_screens/mock_nap_tracking_page.dart';
 import 'setup_flow/bloc/setup_error_type.dart';
 import 'setup_flow/monitor_provisioning_page.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_colors.dart';
+import 'variants/settings/v1_stacked_list_page.dart';
+import 'variants/settings/v2_hero_actions_page.dart';
+import 'variants/settings/v3_tile_dashboard_page.dart';
+import 'variants/settings/v4_photo_cards_page.dart';
+import 'variants/settings/v5_constellation_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,8 +32,13 @@ class MoonboonUIApp extends StatefulWidget {
   State<MoonboonUIApp> createState() => _MoonboonUIAppState();
 }
 
+// Screenshot hook: `--dart-define=SHOT=v1 --dart-define=SHOT_DARK=true`
+// boots straight into a settings variant in the given theme.
+const String _shot = String.fromEnvironment('SHOT');
+const bool _shotDark = bool.fromEnvironment('SHOT_DARK');
+
 class _MoonboonUIAppState extends State<MoonboonUIApp> {
-  bool _isDark = false;
+  bool _isDark = _shotDark;
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +48,17 @@ class _MoonboonUIAppState extends State<MoonboonUIApp> {
       debugShowCheckedModeBanner: false,
       theme: buildThemeWithColors(colors, _isDark ? Brightness.dark : Brightness.light),
       themeMode: ThemeMode.light,
-      home: _LauncherPage(
-        isDark: _isDark,
-        onToggleDark: () => setState(() => _isDark = !_isDark),
-      ),
+      home: switch (_shot) {
+        'v1' => const V1StackedListPage(),
+        'v2' => const V2HeroActionsPage(),
+        'v3' => const V3TileDashboardPage(),
+        'v4' => const V4PhotoCardsPage(),
+        'v5' => const V5ConstellationPage(),
+        _ => _LauncherPage(
+            isDark: _isDark,
+            onToggleDark: () => setState(() => _isDark = !_isDark),
+          ),
+      },
     );
   }
 }
@@ -102,29 +123,81 @@ class _LauncherPage extends StatelessWidget {
 
               const SizedBox(height: 40),
 
-              // ── Setup flow ───────────────────────────────────────────────
-              _SectionLabel(label: 'Setup flow'),
+              // ══════════════════════════════════════════════════════════════
+              // PROTOTYPE — Revised Settings (CU-86cavd37q)
+              // ══════════════════════════════════════════════════════════════
+              _SectionLabel(label: 'Prototype · Revised Settings', accent: true),
+              const SizedBox(height: 4),
+              Text(
+                'CU-86cavd37q — 5 divergent directions for the coffee deck.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: context.color.textTertiary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _FlowTile(
+                label: 'V1 · The Calm Index',
+                subtitle: 'Stacked list — grouped sections, baby pinned on top',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const V1StackedListPage()),
+                ),
+              ),
               const SizedBox(height: 12),
               _FlowTile(
-                label: 'Full monitor flow',
-                subtitle: 'Charge → Search → Found → WiFi → Provisioning → Consent → Done',
-                onTap: () => _openMonitorFlow(context),
+                label: 'V2 · Family First',
+                subtitle: 'Hero + actions — Vera as the emotional center',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const V2HeroActionsPage()),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'V3 · The Glance Board',
+                subtitle: 'Dashboard tiles — live peek content, one-tap access',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const V3TileDashboardPage()),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'V4 · The Album',
+                subtitle: 'Full-bleed imagery cards — Devices-page language',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const V4PhotoCardsPage()),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'V5 · The Constellation',
+                subtitle: 'Spatial map — caregivers orbiting Vera on threads',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const V5ConstellationPage()),
+                ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 48),
 
-              // ── Setup steps ──────────────────────────────────────────────
-              _SectionLabel(label: 'Setup steps'),
-              const SizedBox(height: 12),
+              // ══════════════════════════════════════════════════════════════
+              // MONITOR SETUP FLOW — Design → PR pipeline
+              // ══════════════════════════════════════════════════════════════
+              _SectionLabel(label: 'Monitor setup flow', accent: true),
+              const SizedBox(height: 4),
+              Text(
+                'Checkmark = PR\'d into production. Tap to preview the design.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: context.color.textTertiary,
+                ),
+              ),
+              const SizedBox(height: 16),
               _FlowTile(
                 label: 'Charge device',
-                subtitle: 'Plug in and power on the monitor before connecting',
+                subtitle: 'Radar pulse + USB-C cable animation, keyboard-aware collapse',
                 onTap: () => _openStep(context, (c) => c.showChargeStep()),
               ),
               const SizedBox(height: 12),
               _FlowTile(
                 label: 'Searching for monitor',
-                subtitle: 'Bluetooth scan — auto-advances to Found after 2.5 s',
+                subtitle: 'Bluetooth scan with radar animation',
                 onTap: () => _openStep(context, (c) => c.showSearchingStep()),
               ),
               const SizedBox(height: 12),
@@ -142,25 +215,19 @@ class _LauncherPage extends StatelessWidget {
               const SizedBox(height: 12),
               _FlowTile(
                 label: 'WiFi password',
-                subtitle: 'Password input for "Home WiFi"',
+                subtitle: 'Password input for selected network',
                 onTap: () => _openStep(context, (c) => c.showWifiPasswordStep()),
               ),
               const SizedBox(height: 12),
               _FlowTile(
                 label: 'Provisioning',
-                subtitle: 'Progress states — connecting, uploading, firmware check',
+                subtitle: 'Progress indicator — connecting, uploading, firmware check',
                 onTap: () => _openStep(context, (c) => c.showProvisioningStep()),
               ),
               const SizedBox(height: 12),
               _FlowTile(
-                label: 'Sound monitoring consent',
-                subtitle: 'Enable or disable sound monitoring',
-                onTap: () => _openStep(context, (c) => c.showConsentStep()),
-              ),
-              const SizedBox(height: 12),
-              _FlowTile(
                 label: 'Noise detection',
-                subtitle: 'Sensitivity slider — set detection level',
+                subtitle: 'Sensitivity level selector + AI filtering toggle',
                 onTap: () => _openStep(context, (c) => c.showNoiseDetectionStep()),
               ),
               const SizedBox(height: 12),
@@ -171,15 +238,82 @@ class _LauncherPage extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _FlowTile(
+                label: 'Error state',
+                subtitle: 'Something went wrong — retry + troubleshoot',
+                onTap: () => _openMonitorFlow(context, simulateError: true),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Troubleshoot guide',
+                subtitle: 'Full-screen guide — charging, Bluetooth, WiFi, reset',
+                onTap: () => openMonitorTroubleshootPage(context),
+              ),
+
+              const SizedBox(height: 16),
+
+              _FlowTile(
+                label: 'Full flow (end-to-end)',
+                subtitle: 'Charge → Search → Found → WiFi → Provisioning → Consent → Done',
+                onTap: () => _openMonitorFlow(context),
+              ),
+
+              const SizedBox(height: 48),
+
+              // ══════════════════════════════════════════════════════════════
+              // OTHER EXPLORATIONS
+              // ══════════════════════════════════════════════════════════════
+              _SectionLabel(label: 'Other explorations'),
+              const SizedBox(height: 4),
+              Text(
+                'Concept demos and standalone screens. Not part of the setup flow PRs.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: context.color.textTertiary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _FlowTile(
+                label: 'Sound monitoring consent',
+                subtitle: 'Enable or disable sound monitoring (removed from prod)',
+                onTap: () => _openStep(context, (c) => c.showConsentStep()),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
                 label: 'Welcome gift',
                 subtitle: 'Moonboon Plus onboarding screen',
                 onTap: () => _openStep(context, (c) => c.showWelcomeGiftStep()),
               ),
-
-              const SizedBox(height: 32),
-
-              // ── Modals & states ──────────────────────────────────────────
-              _SectionLabel(label: 'Modals & States'),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Last night report',
+                subtitle: 'Card + detail sheet — night bar, vertical timeline, insights',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const MockLastNightPage()),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Nap tracking (full screen)',
+                subtitle: 'Live timer, collapse chevron, pause/save — auto-opens on start',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const MockNapTrackingPage()),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Baby sleep — Learning phase',
+                subtitle: 'Track naps + feeds · live timer · timeline · insight cards',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const BabySleepHomePage()),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'Monitor stream',
+                subtitle: 'Telemetry cards, video feed, action buttons',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const MockMonitorStreamPage()),
+                ),
+              ),
               const SizedBox(height: 12),
               _FlowTile(
                 label: 'Firmware update',
@@ -189,18 +323,6 @@ class _LauncherPage extends StatelessWidget {
                   onUpdate: () {},
                   onContinueWithout: () {},
                 ),
-              ),
-              const SizedBox(height: 12),
-              _FlowTile(
-                label: 'Something went wrong',
-                subtitle: 'Error state with retry + troubleshoot link',
-                onTap: () => _openMonitorFlow(context, simulateError: true),
-              ),
-              const SizedBox(height: 12),
-              _FlowTile(
-                label: 'Troubleshoot guide',
-                subtitle: 'Full-screen guide — charging, Bluetooth, WiFi, reset',
-                onTap: () => openMonitorTroubleshootPage(context),
               ),
             ],
           ),
@@ -294,16 +416,18 @@ class _LauncherPage extends StatelessWidget {
 
 class _SectionLabel extends StatelessWidget {
   final String label;
+  final bool accent;
 
-  const _SectionLabel({required this.label});
+  const _SectionLabel({required this.label, this.accent = false});
 
   @override
   Widget build(BuildContext context) {
     return Text(
       label.toUpperCase(),
       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-        color: context.color.textTertiary,
+        color: accent ? context.color.brandPrimary : context.color.textTertiary,
         letterSpacing: 1.2,
+        fontWeight: accent ? FontWeight.w600 : null,
       ),
     );
   }
@@ -315,8 +439,16 @@ class _FlowTile extends StatelessWidget {
   final String label;
   final String subtitle;
   final VoidCallback onTap;
+  final String? badge;
+  final bool done;
 
-  const _FlowTile({required this.label, required this.subtitle, required this.onTap});
+  const _FlowTile({
+    required this.label,
+    required this.subtitle,
+    required this.onTap,
+    this.badge,
+    this.done = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -335,9 +467,37 @@ class _FlowTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    label,
-                    style: Theme.of(context).textTheme.titleLarge,
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          label,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ),
+                      if (badge != null) ...[
+                        const SizedBox(width: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: badge == 'TEST'
+                                ? context.color.feedbackInfo.withValues(alpha: 0.15)
+                                : context.color.brandPrimary.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          child: Text(
+                            badge!,
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: badge == 'TEST'
+                                  ? context.color.feedbackInfo
+                                  : context.color.brandPrimary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -349,6 +509,15 @@ class _FlowTile extends StatelessWidget {
                 ],
               ),
             ),
+            if (done)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Icon(
+                  Icons.check_circle_rounded,
+                  size: 20,
+                  color: context.color.feedbackSuccess,
+                ),
+              ),
             Icon(
               Icons.arrow_forward_ios_rounded,
               size: 16,

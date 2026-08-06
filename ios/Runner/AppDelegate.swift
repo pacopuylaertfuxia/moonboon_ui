@@ -34,7 +34,8 @@ import UserNotifications
     let result = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
     // Request notification permission for cry alerts
-    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+    // Disabled on prototype branch — the permission dialog blocks screenshot runs.
+    // UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
 
     // Reconnect any activities still running from a previous session
     if #available(iOS 16.2, *) {
