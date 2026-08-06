@@ -29,16 +29,31 @@ class _V4PhotoCardsPageState extends State<V4PhotoCardsPage> {
                   style: t.headlineLarge?.copyWith(fontSize: 34)),
               const SizedBox(height: 24),
 
-              // Family album card — no photo set yet → warm placeholder
+              // Family album card — warm in-context photography of Vera
+              _AlbumCard(
+                media: Image.asset(
+                  'assets/images/streaming_bg.png',
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                ),
+                label: '2 CAREGIVERS',
+                title: 'Vera · 7 months',
+                action: 'Manage',
+              ),
+              const SizedBox(height: 16),
+
+              // You card — no photo set yet → first-class placeholder
               _AlbumCard(
                 media: Container(
                   color: c.surfaceTertiary,
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      Icon(Icons.nightlight_round,
-                          size: 64,
-                          color: c.textInverse.withValues(alpha: 0.65)),
+                      Text('PP',
+                          style: t.headlineLarge?.copyWith(
+                            fontSize: 44,
+                            color: c.textInverse.withValues(alpha: 0.65),
+                          )),
                       Positioned(
                         top: 14,
                         right: 14,
@@ -55,24 +70,6 @@ class _V4PhotoCardsPageState extends State<V4PhotoCardsPage> {
                         ),
                       ),
                     ],
-                  ),
-                ),
-                label: '2 CAREGIVERS',
-                title: 'Vera · 7 months',
-                action: 'Manage',
-              ),
-              const SizedBox(height: 16),
-
-              // You card — warm in-context photography
-              _AlbumCard(
-                media: ClipRect(
-                  child: Transform.scale(
-                    // Crop out the baked-in white rounded frame in the asset.
-                    scale: 1.35,
-                    child: Image.asset(
-                      'assets/images/motor_lifestyle.png',
-                      fit: BoxFit.cover,
-                    ),
                   ),
                 ),
                 label: 'FATHER · DENMARK',

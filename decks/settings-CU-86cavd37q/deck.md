@@ -101,9 +101,9 @@ _To be judged side-by-side below; each commits to a different structural archety
 | ![v4 light](v4_light.png) | ![v4 dark](v4_dark.png) |
 
 - **The bet:** extend the Devices-page photographic language to people — Settings feels like a family album, not admin.
-- **Optimizes:** brand continuity (strongest "feels Moonboon" of the five), makes adding a baby photo desirable ("Add a photo" chip on the placeholder), one visual system across tabs.
-- **Sacrifices:** density (two cards fill the viewport; Help/Feedback/log-out scroll) and depends on photo quality — day one most users have the moon placeholder.
-- **Open questions for PM:** what's the "You" card image when the user has no photo — lifestyle stock (as mocked) or initials? Is a 2-screen-tall Settings acceptable?
+- **Optimizes:** brand continuity (strongest "feels Moonboon" of the five), makes adding a photo desirable — both card states are shown: warm photo (Vera) and first-class initials placeholder with "Add a photo" chip (You).
+- **Sacrifices:** density (two cards fill the viewport; Help/Feedback/log-out scroll) and lives or dies by photo quality.
+- **Open questions for PM:** is a 2-screen-tall Settings acceptable? Do we prompt for a baby photo during onboarding to guarantee the album pays off day one?
 
 ### V5 — The Constellation · spatial map
 
@@ -114,7 +114,7 @@ _To be judged side-by-side below; each commits to a different structural archety
 - **The bet:** a family is a structure, not a list — draw it. Vera at the center, caregivers on hairline threads, owner chip visible, invite as an empty orbit slot.
 - **Optimizes:** instant who-has-access comprehension + memorability; the most differentiated Settings screen on the market.
 - **Sacrifices:** convention (edit affordances are non-obvious), scales poorly past ~4 members, and demotes profile/help into a dock.
-- **Open questions for PM:** does this earn its novelty, or is it a family-page pattern rather than the Settings root? Where do log-out/delete/version live credibly?
+- **Open questions for PM:** does this earn its novelty, or is it a family-page pattern rather than the Settings root? (Log out / delete account now live under the dock; version number still homeless.)
 
 ---
 

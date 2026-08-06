@@ -64,6 +64,10 @@ class _V5ConstellationPageState extends State<V5ConstellationPage> {
             const SizedBox(height: 18),
             Text('Log out',
                 style: t.labelMedium?.copyWith(color: c.textTertiary)),
+            const SizedBox(height: 12),
+            Text('Delete account',
+                style: t.labelSmall?.copyWith(
+                    color: c.feedbackError.withValues(alpha: 0.85))),
             const SizedBox(height: 24),
           ],
         ),
@@ -108,7 +112,7 @@ class _Constellation extends StatelessWidget {
     final c = context.color;
     final t = Theme.of(context).textTheme;
     return LayoutBuilder(builder: (context, box) {
-      final center = Offset(box.maxWidth / 2, box.maxHeight / 2 - 10);
+      final center = Offset(box.maxWidth / 2, box.maxHeight / 2 - 60);
       const orbit = 130.0;
       // Node angles (radians): Paco upper-left, Sofie upper-right,
       // invite lower-left so its thread stays clear of Vera's labels.
