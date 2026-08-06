@@ -19,6 +19,18 @@ import 'variants/settings/v2_hero_actions_page.dart';
 import 'variants/settings/v3_tile_dashboard_page.dart';
 import 'variants/settings/v4_photo_cards_page.dart';
 import 'variants/settings/v5_constellation_page.dart';
+import 'variants/settings_flow/baby_form_page.dart';
+import 'variants/settings_flow/flow_state.dart';
+import 'variants/settings_flow/help_page.dart';
+import 'variants/settings_flow/invite_flows.dart';
+import 'variants/settings_flow/profile_page.dart';
+import 'variants/settings_flow/settings_root_page.dart';
+
+Widget _flowAs(Viewer viewer, FamilyScenario scenario) {
+  FlowState.i.viewer = viewer;
+  FlowState.i.scenario = scenario;
+  return const SettingsRootPage();
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,6 +66,15 @@ class _MoonboonUIAppState extends State<MoonboonUIApp> {
         'v3' => const V3TileDashboardPage(),
         'v4' => const V4PhotoCardsPage(),
         'v5' => const V5ConstellationPage(),
+        'flow' => const SettingsRootPage(),
+        'flow-member' => _flowAs(Viewer.member, FamilyScenario.full),
+        'flow-solo' => _flowAs(Viewer.owner, FamilyScenario.solo),
+        'flow-empty' => _flowAs(Viewer.owner, FamilyScenario.empty),
+        'flow-profile' => const ProfilePage(),
+        'flow-baby' => BabyFormPage(mode: BabyFormMode.edit, baby: FlowState.i.baby!),
+        'flow-add-baby' => const BabyFormPage(mode: BabyFormMode.create),
+        'flow-request' => const RequestAccessPage(),
+        'flow-help' => const HelpPage(),
         _ => _LauncherPage(
             isDark: _isDark,
             onToggleDark: () => setState(() => _isDark = !_isDark),
@@ -127,6 +148,22 @@ class _LauncherPage extends StatelessWidget {
               // PROTOTYPE — Revised Settings (CU-86cavd37q)
               // ══════════════════════════════════════════════════════════════
               _SectionLabel(label: 'Prototype · Revised Settings', accent: true),
+              const SizedBox(height: 4),
+              Text(
+                'V2 picked — full flow deep dive, all mapped cases.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: context.color.textTertiary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _FlowTile(
+                label: 'V2 Flow · Settings deep dive',
+                subtitle: 'Root states, profile, baby, invite, members, help — all wired',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SettingsRootPage()),
+                ),
+              ),
+              const SizedBox(height: 24),
               const SizedBox(height: 4),
               Text(
                 'CU-86cavd37q — 5 divergent directions for the coffee deck.',
