@@ -66,6 +66,7 @@ ButtonStyle getButtonStyle(
   double? customWidth,
   double? customRadius,
   Color? backgroundColor,
+  Color? borderColor,
   TextStyle? labelStyle,
   required bool disabled,
 }) {
@@ -128,13 +129,13 @@ ButtonStyle getButtonStyle(
       );
     case ButtonVariant.outlined:
       return OutlinedButton.styleFrom(
-        backgroundColor: Colors.transparent,
+        backgroundColor: backgroundColor ?? Colors.transparent,
         foregroundColor: context.color.textPrimary,
         minimumSize: minSize,
         shape: RoundedRectangleBorder(
           borderRadius: borderRadius,
           side: BorderSide(
-            color: context.color.borderNormal,
+            color: borderColor ?? context.color.borderNormal,
           ),
         ),
         textStyle: textStyle,
@@ -154,6 +155,7 @@ class Button extends StatelessWidget {
   final double? customWidth;
   final double? customRadius;
   final Color? backgroundColor;
+  final Color? borderColor;
   final TextStyle? labelStyle;
 
   const Button({
@@ -169,6 +171,7 @@ class Button extends StatelessWidget {
     this.customWidth,
     this.customRadius,
     this.backgroundColor,
+    this.borderColor,
     this.labelStyle,
   });
 
@@ -182,6 +185,7 @@ class Button extends StatelessWidget {
       customWidth: customWidth,
       customRadius: customRadius,
       backgroundColor: backgroundColor,
+      borderColor: borderColor,
       labelStyle: labelStyle,
       disabled: disabled,
     );

@@ -25,6 +25,11 @@ import 'variants/settings_flow/help_page.dart';
 import 'variants/settings_flow/invite_flows.dart';
 import 'variants/settings_flow/profile_page.dart';
 import 'variants/settings_flow/settings_root_page.dart';
+import 'variants/settings_refinement/ref_baby_page.dart';
+import 'variants/settings_refinement/ref_family_page.dart';
+import 'variants/settings_refinement/ref_overview_page.dart';
+import 'variants/settings_refinement/ref_feedback_modal.dart';
+import 'variants/settings_refinement/ref_profile_page.dart';
 
 Widget _flowAs(Viewer viewer, FamilyScenario scenario) {
   FlowState.i.viewer = viewer;
@@ -75,6 +80,17 @@ class _MoonboonUIAppState extends State<MoonboonUIApp> {
         'flow-add-baby' => const BabyFormPage(mode: BabyFormMode.create),
         'flow-request' => const RequestAccessPage(),
         'flow-help' => const HelpPage(),
+        'ref' => const RefOverviewPage(),
+        'ref-logout' => const RefOverviewPage(autoOpen: 'logout'),
+        'ref-delete' => const RefOverviewPage(autoOpen: 'delete'),
+        'ref-profile' => const RefProfilePage(),
+        'ref-country' => const RefProfilePage(autoOpen: 'country'),
+        'ref-family' => const RefFamilyPage(),
+        'ref-member' => const RefFamilyPage(autoOpen: 'member'),
+        'ref-remove' => const RefFamilyPage(autoOpen: 'remove'),
+        'ref-invite' => const RefFamilyPage(autoOpen: 'invite'),
+        'ref-baby' => const RefBabyPage(),
+        'ref-feedback' => const _RefFeedbackShot(),
         _ => _LauncherPage(
             isDark: _isDark,
             onToggleDark: () => setState(() => _isDark = !_isDark),
@@ -85,6 +101,27 @@ class _MoonboonUIAppState extends State<MoonboonUIApp> {
 }
 
 // ── Launcher ──────────────────────────────────────────────────────────────────
+
+/// Screenshot helper: overview with the feedback sheet already open.
+class _RefFeedbackShot extends StatefulWidget {
+  const _RefFeedbackShot();
+
+  @override
+  State<_RefFeedbackShot> createState() => _RefFeedbackShotState();
+}
+
+class _RefFeedbackShotState extends State<_RefFeedbackShot> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) showRefFeedbackSheet(context);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const RefOverviewPage();
+}
 
 class _LauncherPage extends StatelessWidget {
   final bool isDark;
@@ -161,6 +198,14 @@ class _LauncherPage extends StatelessWidget {
                 subtitle: 'Root states, profile, baby, invite, members, help — all wired',
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const SettingsRootPage()),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FlowTile(
+                label: 'V3 Refinement · Designer direction',
+                subtitle: 'Figma refinement file — overview, profile, family orbit, baby, feedback',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const RefOverviewPage()),
                 ),
               ),
               const SizedBox(height: 24),

@@ -76,7 +76,9 @@ flutter:
     - assets/illustrations/system/dark/
     - assets/videos/
     - assets/images/
+    - assets/images/settings_ref/
     - assets/icons/
+    - assets/icons/settings_ref/
     - assets/
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -7,6 +7,7 @@ class Caregiver {
   String lastName;
   String role; // Mother · Father · Guardian
   String country;
+  String language;
   String email;
   bool owner;
   bool hasPhoto;
@@ -17,6 +18,7 @@ class Caregiver {
     required this.lastName,
     required this.role,
     required this.country,
+    this.language = 'Danish',
     required this.email,
     this.owner = false,
     this.hasPhoto = false,
