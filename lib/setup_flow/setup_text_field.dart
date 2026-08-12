@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../common/button.dart';
 import '../common/circular_loading_bar.dart';
-import '../theme/app_colors.dart';
 import '../theme/theme_colors.dart';
 import '../strings/app_strings.dart';
 
@@ -63,17 +62,20 @@ class SetupTextField extends StatefulWidget {
 class _SetupTextFieldState extends State<SetupTextField> {
   bool _isValid = false;
   bool _isObscured = false;
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     widget.controller.addListener(_onControllerChanged);
     _isObscured = widget.isObscured;
+    _isValid = widget.validationRule(widget.controller.textController.text);
   }
 
   @override
   void dispose() {
     widget.controller.removeListener(_onControllerChanged);
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -89,7 +91,13 @@ class _SetupTextFieldState extends State<SetupTextField> {
   Widget build(BuildContext context) {
     final isLoading = widget.controller.isLoading;
     final isReadOnly = widget.controller.isReadOnly;
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Light: overlayNavButton = creme@90% (Figma spec for input fill)
+    // Dark: surfaceQuaternary = #3D352C (elevated surface, visible on near-black bg)
+    final fillColor = isDark
+        ? context.color.surfaceQuaternary
+        : context.color.overlayNavButton;
 
     return Column(
       children: [
@@ -98,14 +106,14 @@ class _SetupTextFieldState extends State<SetupTextField> {
           TextField(
             enabled: !isLoading && !isReadOnly,
             readOnly: isReadOnly,
+            focusNode: _focusNode,
             controller: widget.controller.textController,
             obscureText: _isObscured,
             textCapitalization: widget.textCapitalization,
+            style: TextStyle(color: context.color.textSecondary),
             decoration: InputDecoration(
               hintText: widget.hintText,
-              fillColor: isDarkMode
-                  ? context.color.surfacePrimary
-                  : context.color.surfaceSecondary,
+              fillColor: fillColor,
               filled: true,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(100),
@@ -117,7 +125,10 @@ class _SetupTextFieldState extends State<SetupTextField> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(100),
-                borderSide: BorderSide.none,
+                borderSide: BorderSide(
+                  color: context.color.borderNormal,
+                  width: 1.5,
+                ),
               ),
               hintStyle: TextStyle(color: context.color.textQuaternary),
               suffixIcon: widget.isObscured
@@ -128,7 +139,7 @@ class _SetupTextFieldState extends State<SetupTextField> {
                           _isObscured
                               ? Icons.visibility_off
                               : Icons.visibility,
-                          color: textColor(context).withValues(alpha: 0.6),
+                          color: context.color.textTertiary.withValues(alpha: 0.6),
                           size: 20,
                         ),
                         onPressed: () {

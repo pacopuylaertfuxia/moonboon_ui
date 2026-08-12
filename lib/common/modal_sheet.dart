@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/theme_colors.dart';
 import 'device_radius.dart';
 
@@ -77,14 +78,19 @@ class ModalSheet extends StatelessWidget {
           barrierColor ??
           (Theme.of(context).brightness == Brightness.dark
               ? Colors.black.withValues(alpha: 0.75)
-              : Colors.black38),
+              : Colors.black.withValues(alpha: 0.38)),
       backgroundColor: Colors.transparent,
       elevation: 0.0,
       isScrollControlled: true,
       isDismissible: isDismissible,
       enableDrag: enableDrag,
       builder: (context) => Padding(
-        padding: const EdgeInsets.all(6.0),
+        padding: EdgeInsets.fromLTRB(
+          6,
+          6,
+          6,
+          6 + MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: ModalSheet(
           title: title,
           description: description,
@@ -105,14 +111,12 @@ class ModalSheet extends StatelessWidget {
         ? MediaQuery.of(context).viewPadding.bottom
         : 16.0;
 
-    final padding = hasPadding
-        ? EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            bottomSafeArea,
-          )
-        : EdgeInsets.zero;
+    final padding = EdgeInsets.fromLTRB(
+      hasPadding ? 16 : 0,
+      32,
+      hasPadding ? 16 : 0,
+      hasPadding ? bottomSafeArea : 0,
+    );
 
     // Matches production: bottom corners = device screen corner radius - 4.
     // 0 = flat (older Android/devices with no rounded corners).
@@ -130,7 +134,7 @@ class ModalSheet extends StatelessWidget {
         child: Container(
           width: double.infinity,
           constraints: BoxConstraints(
-            maxHeight: maxHeight ?? MediaQuery.of(context).size.height - 60,
+            maxHeight: maxHeight ?? _calculateBottomSheetHeight(context),
           ),
           decoration: BoxDecoration(
             color: getModalSheetBackgroundColor(context, background),
@@ -151,7 +155,12 @@ class ModalSheet extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 16),
+                        icon: SvgPicture.asset(
+                          'assets/icons/utility/close.svg',
+                          colorFilter: ColorFilter.mode(context.color.textPrimary, BlendMode.srcIn),
+                          width: 16,
+                          height: 16,
+                        ),
                         onPressed: onClose ?? () => Navigator.of(context).pop(),
                         style: IconButton.styleFrom(
                           backgroundColor: _getModalSheetCloseButtonColor(
@@ -258,7 +267,6 @@ class ModalSheetTitle extends StatelessWidget {
       style:
           style ??
           theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
           ),
     );
@@ -285,6 +293,23 @@ class ModalSheetDescription extends StatelessWidget {
           ),
     );
   }
+}
+
+/// Matches production bottom_sheet_utils.dart (90% of safe area), but also
+/// subtracts the keyboard so the sheet never gets pushed under the status
+/// bar when the keyboard is open.
+double _calculateBottomSheetHeight(
+  BuildContext context, {
+  double maxPercentage = 0.9,
+}) {
+  // The modal route strips the top safe-area padding from its MediaQuery
+  // (padding.top == 0 in here), so read the raw view metrics instead —
+  // same effect as production reading from rootNavigatorKey's context.
+  final mediaQuery = MediaQueryData.fromView(View.of(context));
+  final safeAreaHeight = mediaQuery.size.height - mediaQuery.padding.top;
+  final available = safeAreaHeight - mediaQuery.viewInsets.bottom - 12;
+  return (safeAreaHeight * maxPercentage)
+      .clamp(0.0, available.clamp(0.0, safeAreaHeight));
 }
 
 class _AnimatedSizeOrNot extends StatelessWidget {

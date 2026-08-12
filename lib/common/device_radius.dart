@@ -9,7 +9,11 @@ class DeviceRadius {
   ScreenRadius? screenRadius;
 
   Future<void> init() async {
-    screenRadius = await ScreenCornerRadius.get();
+    try {
+      screenRadius = await ScreenCornerRadius.get();
+    } catch (_) {
+      // Not supported on web
+    }
   }
 
   /// Bottom sheet inner radius = device screen corner radius - 4.

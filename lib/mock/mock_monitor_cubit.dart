@@ -34,8 +34,7 @@ class MockMonitorCubit extends Cubit<MonitorState> {
       emit(ChangeWiFiInstructionsStep());
     } else {
       emit(MonitorChargeStep());
-      // Auto-find the monitor after 2.5s
-      _delay(2500, () {
+      _delay(4000, () {
         emit(MonitorFound(
           [_mockMonitor],
           friendlyName: friendlyName ?? _mockMonitorName,
@@ -47,6 +46,10 @@ class MockMonitorCubit extends Cubit<MonitorState> {
 
   void startSetupFlow() {
     emit(MonitorChargeStep());
+  }
+
+  void goToSearching() {
+    emit(MonitorSearchingStep());
     _delay(2500, () {
       emit(MonitorFound(
         [_mockMonitor],
@@ -120,18 +123,53 @@ class MockMonitorCubit extends Cubit<MonitorState> {
     for (final (delayMs, step) in steps) {
       _delay(delayMs, () => emit(MonitorFinalConfiguration(name, step)));
     }
-    _delay(9000, () => emit(MonitorStreamingConsentStep()));
+    _delay(9000, () => emit(MonitorSoundMonitoringConsentStep()));
   }
 
   // ── Consent & noise detection ─────────────────────────────────
 
-  void giveStreamingConsent() => emit(MonitorNoiseDetectionStep());
+  void giveSoundMonitoringConsent() => emit(MonitorNoiseDetectionStep());
 
-  void refuseStreamingConsent() => emit(MonitorNoiseDetectionStep());
+  void disableSoundMonitoring() => emit(MonitorStreamingConsentStep());
 
   void setNoiseDetectionLevel(NoiseDetectionLevel level, bool onlyBabyCries) {
-    emit(MonitorProvisioningSuccess(42));
+    emit(MonitorStreamingConsentStep());
   }
+
+  void giveStreamingConsent() => emit(MonitorWelcomeGiftStep());
+
+  void proceedFromWelcomeGift() {
+    if (!isClosed) close();
+  }
+
+  void refuseStreamingConsent() {
+    if (!isClosed) close();
+  }
+
+  // ── Jump-to methods (for individual step entry points) ────────
+
+  void showChargeStep() => emit(MonitorChargeStep());
+
+  void showSearchingStep() {
+    emit(MonitorSearchingStep());
+    _delay(2500, () => emit(MonitorFound([_mockMonitor], friendlyName: _mockMonitorName)));
+  }
+
+  void showFoundStep() => emit(MonitorFound([_mockMonitor], friendlyName: _mockMonitorName));
+
+  void showWifiListStep() => emit(MonitorScanningWiFiResult(_mockMonitorName, _mockWifiNetworks));
+
+  void showWifiPasswordStep() => emit(MonitorWiFiPasswordInput('Home WiFi'));
+
+  void showProvisioningStep() => _runFinalConfiguration(_mockMonitorName);
+
+  void showConsentStep() => emit(MonitorSoundMonitoringConsentStep());
+
+  void showNoiseDetectionStep() => emit(MonitorNoiseDetectionStep());
+
+  void showStreamingConsentStep() => emit(MonitorStreamingConsentStep());
+
+  void showWelcomeGiftStep() => emit(MonitorWelcomeGiftStep());
 
   // ── Error simulation (for demo/testing) ───────────────────────
 
